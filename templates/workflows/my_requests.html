@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}طلباتي - نظام سير العمل{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">سير العمل</a></li>
+<li class="breadcrumb-item active">طلباتي</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-file-signature me-2 text-primary"></i>
+                    طلبات الموافقات الخاصة بي
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">قائمة الطلبات</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العنوان</th>
+                            <th>النوع</th>
+                            <th>الحالة</th>
+                            <th>تاريخ الإنشاء</th>
+                            <th>الموافق التالي</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in my_requests %}
+                        <tr>
+                            <td>{{ request.request_id|truncatechars:8 }}</td>
+                            <td>
+                                <a href="{% url 'workflows:request_detail' request.request_id %}">
+                                    {{ request.title }}
+                                </a>
+                            </td>
+                            <td>{{ request.get_workflow_type_display }}</td>
+                            <td>
+                                <span class="badge bg-{% if request.status == 'APPROVED' %}success{% elif request.status == 'REJECTED' %}danger{% elif request.status == 'PENDING' %}warning{% else %}secondary{% endif %}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ request.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if request.current_step %}
+                                    {{ request.current_step.approver.arabic_name }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'workflows:request_detail' request.request_id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">لا توجد طلبات حالياً.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الرد على: {{ original_message.subject }}{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item"><a href="{% url 'messaging:inbox' %}">الرسائل</a></li>
+<li class="breadcrumb-item"><a href="{% url 'messaging:message_detail' original_message.message_id %}">عرض الرسالة</a></li>
+<li class="breadcrumb-item active">رد</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-reply me-2 text-primary"></i>
+                الرد على الرسالة
+            </h1>
+        </div>
+    </div>
+
+    <!-- Reply Form -->
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{% url 'messaging:reply' original_message.message_id %}">
+                {% csrf_token %}
+                
+                <!-- Subject -->
+                <div class="mb-3">
+                    <label for="id_subject" class="form-label fw-bold">الموضوع</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="id_subject" 
+                           name="subject" 
+                           value="رد: {{ original_message.subject }}"
+                           required>
+                </div>
+                
+                <!-- Body -->
+                                    <div class="mb-3">
+                    <label for="id_body" class="form-label fw-bold">نص الرد</label>
+                    <div class="rich-text-editor-container">
+                        <textarea class="form-control" 
+                                  id="id_body" 
+                                  name="body" 
+                                  rows="8" 
+                                  placeholder="اكتب ردك هنا..."></textarea>
+                    </div>
+                    <div class="form-text mt-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="fas fa-info-circle me-1"></i>
+                                يمكنك تنسيق النص باستخدام أدوات التحرير المتقدمة
+                            </span>
+                            <span class="text-muted">
+                                عدد الكلمات: <span id="word-count">0</span> | 
+                                عدد الأحرف: <span id="body-count">0</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'messaging:message_detail' original_message.message_id %}" class="btn btn-outline-secondary me-2">
+                        إلغاء
+                    </a>
+                    <button type="submit" id="submit-btn" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2" id="submit-icon"></i>
+                        <span id="submit-text">إرسال الرد</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Original Message -->
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                الرسالة الأصلية
+            </h5>
+        </div>
+        <div class="card-body">
+            <p><strong>من:</strong> {{ original_message.sender.arabic_name }}</p>
+            <p><strong>التاريخ:</strong> {{ original_message.sent_at|date:"d/m/Y H:i" }}</p>
+            <p><strong>الموضوع:</strong> {{ original_message.subject }}</p>
+            <hr>
+            <div class="message-body small">
+                {{ original_message.body|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* تنسيق محرر النصوص الغني */
+.rich-text-editor-container {
+    position: relative;
+}
+
+.rich-text-editor-container .tox-tinymce {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0 0 0.2rem rgba(30, 74, 107, 0.1);
+}
+
+.rich-text-editor-container .tox-toolbar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.rich-text-editor-container .tox-edit-area {
+    background-color: white;
+}
+
+/* دعم اللغة العربية */
+.rich-text-editor-container .tox-edit-area__iframe {
+    direction: rtl;
+    text-align: right;
+}
+
+/* تخصيص شريط الأدوات */
+.rich-text-editor-container .tox-toolbar-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* إضافات للتوافق مع Bootstrap */
+.rich-text-editor-container .tox {
+    font-family: 'Tajawal', Arial, sans-serif;
+}
+
+#body-count, #word-count {
+    font-weight: 600;
+}
+
+/* تنسيق HTML داخل الرسالة الأصلية */
+.message-body {
+    direction: rtl;
+    text-align: right;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.message-body h1, .message-body h2, .message-body h3, 
+.message-body h4, .message-body h5, .message-body h6 {
+    color: #1e4a6b;
+    margin-bottom: 0.5em;
+    margin-top: 1em;
+}
+
+.message-body p {
+    margin-bottom: 1em;
+}
+
+.message-body ul, .message-body ol {
+    padding-right: 20px;
+    margin-bottom: 1em;
+}
+
+.message-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+.message-body table td, .message-body table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: right;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // تهيئة محرر النصوص الغني TinyMCE للرد
+    tinymce.init({
+        selector: '#id_body',
+        language: 'ar',
+        directionality: 'rtl',
+        height: 300,
+        menubar: false,
+        branding: false,
+        promotion: false,
+        
+        // الـ plugins المطلوبة
+        plugins: [
+            'lists', 'link', 'charmap', 'preview', 'searchreplace', 
+            'visualblocks', 'code', 'fullscreen', 'insertdatetime', 
+            'wordcount', 'emoticons', 'textcolor', 'colorpicker', 
+            'textpattern', 'codesample', 'hr', 'directionality'
+        ],
+        
+        // شريط الأدوات مبسط للرد
+        toolbar: [
+            'formatselect fontselect fontsizeselect',
+            'bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright | ltr rtl',
+            'bullist numlist | link emoticons charmap hr | searchreplace code fullscreen preview'
+        ],
+        
+        // خيارات الخطوط
+        font_family_formats: 'Tajawal=Tajawal, Arial, sans-serif; Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; Times New Roman=times new roman,times,serif;',
+        
+        // أحجام الخطوط
+        fontsize_formats: '8pt 9pt 10pt 11pt 12pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 36pt 48pt 72pt',
+        
+        // إعدادات المحتوى
+        content_css: [
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css',
+            'https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap'
+        ],
+        
+        content_style: `
+            body { 
+                font-family: 'Tajawal', Arial, sans-serif; 
+                font-size: 14px; 
+                direction: rtl; 
+                text-align: right;
+                line-height: 1.6;
+                color: #333;
+                background: white;
+                padding: 15px;
+            }
+            h1, h2, h3, h4, h5, h6 { color: #1e4a6b; margin-bottom: 0.5em; }
+            p { margin-bottom: 1em; }
+            ul, ol { padding-right: 20px; }
+        `,
+        
+        // خيارات أخرى
+        paste_as_text: false,
+        paste_merge_formats: true,
+        smart_paste: true,
+        
+        // أحداث المحرر
+        setup: function(editor) {
+            // تحديث عداد الكلمات والأحرف
+            editor.on('keyup change', function() {
+                const content = editor.getContent({ format: 'text' });
+                const wordCount = content.trim() === '' ? 0 : content.trim().split(/\s+/).length;
+                const charCount = content.length;
+                
+                $('#word-count').text(wordCount);
+                $('#body-count').text(charCount);
+                
+                // تحذير إذا تجاوز النص الحد المسموح
+                if (charCount > 5000) {
+                    $('#body-count').addClass('text-danger');
+                } else {
+                    $('#body-count').removeClass('text-danger');
+                }
+            });
+            
+            // إعداد اللغة العربية
+            editor.on('init', function() {
+                editor.getDoc().dir = 'rtl';
+                editor.getBody().style.direction = 'rtl';
+                editor.getBody().style.textAlign = 'right';
+            });
+        },
+        
+        // رسائل التحقق
+        init_instance_callback: function(editor) {
+            console.log('تم تهيئة محرر النصوص الغني للرد بنجاح');
+            // Ensure the editor is ready and force update of content on change
+            editor.on('change keyup setcontent', function() {
+                editor.save(); // This updates the original textarea
+            });
+        }
+    });
+
+    // Form validation
+    $('form').on('submit', function(e) {
+        console.log('🔄 بدء التحقق من صحة النموذج...');
+        
+        // Force save all TinyMCE instances to their textareas
+        if (typeof tinymce !== 'undefined') {
+            tinymce.triggerSave();
+        }
+        
+        const subject = $('#id_subject').val().trim();
+        
+        // Get content from TinyMCE or fallback to textarea
+        let bodyContent = '';
+        let bodyText = '';
+        
+        if (tinymce.get('id_body')) {
+            console.log('📝 جلب المحتوى من TinyMCE...');
+            bodyContent = tinymce.get('id_body').getContent();
+            bodyText = tinymce.get('id_body').getContent({format: 'text'});
+            // Update the textarea with TinyMCE content before submission
+            $('#id_body').val(bodyContent);
+            console.log('✅ تم تحديث textarea بمحتوى TinyMCE');
+        } else {
+            console.log('📝 جلب المحتوى من textarea مباشرة...');
+            bodyContent = $('#id_body').val();
+            bodyText = bodyContent;
+        }
+        
+        console.log('📋 الموضوع:', subject);
+        console.log('📄 نص الرد:', bodyText.trim().substring(0, 50) + '...');
+        
+        if (!subject) {
+            e.preventDefault();
+            alert('يرجى إدخال موضوع الرد');
+            $('#id_subject').focus();
+            return false;
+        }
+        
+        if (!bodyText.trim()) {
+            e.preventDefault();
+            alert('يرجى إدخال نص الرد');
+            if (tinymce.get('id_body')) {
+                tinymce.get('id_body').focus();
+            } else {
+                $('#id_body').focus();
+            }
+            return false;
+        }
+        
+        console.log('✅ تم التحقق من صحة النموذج بنجاح، جاري الإرسال...');
+        
+        // Show loading state
+        $('#submit-btn').prop('disabled', true);
+        $('#submit-icon').removeClass('fa-paper-plane').addClass('fa-spinner fa-spin');
+        $('#submit-text').text('جاري الإرسال...');
+        
+        return true;
+    });
+});
+</script>
+{% endblock %}

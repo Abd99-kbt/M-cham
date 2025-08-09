@@ -1,0 +1,586 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الأرشيف - نظام المراسلات الداخلية{% endblock %}
+
+{% block extra_css %}
+<style>
+    .archive-card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    .archive-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .archive-date {
+        font-size: 0.85em;
+        color: #6c757d;
+    }
+    .message-status-archived {
+        background: linear-gradient(45deg, #6c757d, #495057);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <h1 class="modern-page-title animate-fade-in-right">
+        <i class="ph ph-archive"></i> أرشيف الرسائل
+    </h1>
+    <p class="modern-page-subtitle animate-fade-in-right delay-100">
+        إدارة وعرض الرسائل المؤرشفة مرتبة حسب تاريخ الأرشفة والإرسال
+    </p>
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4 animate-fade-in-up delay-200">
+        <ol class="breadcrumb modern-breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'messaging:inbox' %}">
+                    <i class="ph ph-house"></i> الرسائل
+                </a>
+            </li>
+            <li class="breadcrumb-item active">الأرشيف</li>
+        </ol>
+    </nav>
+
+    <!-- إحصائيات سريعة -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-300">
+                <i class="modern-stat-icon ph ph-archive"></i>
+                <div class="modern-stat-number">{{ stats.total|default:0 }}</div>
+                <div class="modern-stat-label">إجمالي المؤرشفة</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-400">
+                <i class="modern-stat-icon ph ph-calendar"></i>
+                <div class="modern-stat-number">{{ stats.this_month|default:0 }}</div>
+                <div class="modern-stat-label">مؤرشفة هذا الشهر</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-500">
+                <i class="modern-stat-icon ph ph-paper-plane-tilt"></i>
+                <div class="modern-stat-number">{{ stats.sent|default:0 }}</div>
+                <div class="modern-stat-label">مرسلة مؤرشفة</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-600">
+                <i class="modern-stat-icon ph ph-envelope"></i>
+                <div class="modern-stat-number">{{ stats.received|default:0 }}</div>
+                <div class="modern-stat-label">مستلمة مؤرشفة</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="modern-card animate-fade-in-up delay-700">
+                <div class="modern-card-header">
+                    <h6 class="mb-0">
+                        <i class="ph ph-funnel me-2"></i>
+                        تصفية الأرشيف
+                    </h6>
+                </div>
+                <div class="modern-card-body">
+                    <div class="modern-sidebar">
+                        <a class="modern-sidebar nav-link {% if not message_type %}active{% endif %}" href="{% url 'messaging:archive' %}">
+                            <i class="ph ph-archive me-2"></i>
+                            جميع الرسائل
+                            <span class="badge bg-primary ms-auto">{{ stats.total|default:0 }}</span>
+                        </a>
+                        <a class="modern-sidebar nav-link {% if message_type == 'sent' %}active{% endif %}" href="?type=sent">
+                            <i class="ph ph-paper-plane-tilt me-2"></i>
+                            الرسائل المرسلة
+                            <span class="badge bg-success ms-auto">{{ stats.sent|default:0 }}</span>
+                        </a>
+                        <a class="modern-sidebar nav-link {% if message_type == 'received' %}active{% endif %}" href="?type=received">
+                            <i class="ph ph-envelope me-2"></i>
+                            الرسائل المستلمة
+                            <span class="badge bg-info ms-auto">{{ stats.received|default:0 }}</span>
+                        </a>
+                    </div>
+
+                    <hr class="my-3">
+                    <h6 class="fw-bold mb-3">
+                        <i class="ph ph-calendar me-2"></i>
+                        فترة الأرشفة
+                    </h6>
+                    <div class="modern-sidebar">
+                        <a class="modern-sidebar nav-link {% if period == 'week' %}active{% endif %}" href="?period=week">
+                            <i class="ph ph-calendar-blank me-2"></i>
+                            هذا الأسبوع
+                        </a>
+                        <a class="modern-sidebar nav-link {% if period == 'month' %}active{% endif %}" href="?period=month">
+                            <i class="ph ph-calendar me-2"></i>
+                            هذا الشهر
+                        </a>
+                        <a class="modern-sidebar nav-link {% if period == 'year' %}active{% endif %}" href="?period=year">
+                            <i class="ph ph-calendar-dots me-2"></i>
+                            هذا العام
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Archive List -->
+        <div class="col-lg-9">
+            <!-- Search and Export -->
+            <div class="modern-card mb-4 animate-fade-in-up delay-800">
+                <div class="modern-card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="input-group">
+                                <input type="text" 
+                                       class="modern-form-control search-input" 
+                                       placeholder="البحث في الأرشيف..."
+                                       value="{{ search_query }}"
+                                       id="archiveSearch">
+                                <button class="modern-btn modern-btn-primary" type="button" onclick="searchArchive()">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="modern-btn modern-btn-success" onclick="exportArchive()">
+                                    <i class="ph ph-download me-2"></i>
+                                    تصدير الأرشيف
+                                </button>
+                                <a href="{% url 'messaging:compose' %}" class="modern-btn modern-btn-primary">
+                                    <i class="ph ph-plus me-2"></i>
+                                    رسالة جديدة
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if message_recipients %}
+            <!-- Messages Table -->
+            <div class="modern-card animate-fade-in-up delay-900">
+                <div class="modern-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="ph ph-archive me-2"></i>
+                            الرسائل المؤرشفة ({{ message_recipients.paginator.count }} رسالة)
+                        </h6>
+                        <div class="action-guide">
+                            <small class="text-muted">
+                                <i class="ph ph-info me-1"></i>
+                                انقر على الرسالة لعرض التفاصيل
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modern-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="modern-table" id="archiveTable">
+                            <thead>
+                                <tr>
+                                    <th width="40">#</th>
+                                    <th>الموضوع</th>
+                                    <th>المرسل/المستقبل</th>
+                                    <th>تاريخ الإرسال</th>
+                                    <th>تاريخ الأرشفة</th>
+                                    <th>الحالة</th>
+                                    <th width="120">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for message in message_recipients %}
+                                <tr class="archive-row animate-fade-in-up" style="animation-delay: {{ forloop.counter0|add:10 }}00ms">
+                                    <td>
+                                        <div class="fw-semibold text-muted">{{ forloop.counter }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary rounded-3 d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="ph ph-envelope text-white"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">
+                                                    <a href="{% url 'messaging:message_detail' message.message_id %}" 
+                                                       class="text-decoration-none text-dark">
+                                                        {{ message.subject|truncatechars:50 }}
+                                                    </a>
+                                                </div>
+                                                <small class="text-muted">{{ message.category.get_name_display }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {% if message.sender == user %}
+                                                <div class="fw-semibold text-success">
+                                                    <i class="ph ph-arrow-left me-1"></i>
+                                                    أرسلت إلى:
+                                                </div>
+                                                <small class="text-muted">
+                                                    {% for recipient in message.messagerecipient_set.all|slice:":2" %}
+                                                        {{ recipient.recipient.arabic_name|default:recipient.recipient.username }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                    {% if message.messagerecipient_set.count > 2 %}
+                                                        و {{ message.messagerecipient_set.count|add:"-2" }} آخرين
+                                                    {% endif %}
+                                                </small>
+                                            {% else %}
+                                                <div class="fw-semibold text-primary">
+                                                    <i class="ph ph-arrow-right me-1"></i>
+                                                    من:
+                                                </div>
+                                                <small class="text-muted">{{ message.sender.arabic_name|default:message.sender.username }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="archive-date">
+                                            <div class="fw-semibold">{{ message.sent_at|date:"Y/m/d" }}</div>
+                                            <small class="text-muted">{{ message.sent_at|date:"H:i" }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="archive-date">
+                                            <div class="fw-semibold text-info">{{ message.archived_at|date:"Y/m/d" }}</div>
+                                            <small class="text-muted">{{ message.archived_at|timesince }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            <span class="message-status-archived">
+                                                <i class="ph ph-archive me-1"></i>
+                                                مؤرشفة
+                                            </span>
+                                            {% if message.priority == 'URGENT' %}
+                                            <span class="badge bg-danger">
+                                                <i class="ph ph-warning me-1"></i>
+                                                عاجلة
+                                            </span>
+                                            {% elif message.priority == 'HIGH' %}
+                                            <span class="badge bg-warning">
+                                                <i class="ph ph-exclamation me-1"></i>
+                                                مهمة
+                                            </span>
+                                            {% endif %}
+                                            {% if message.confidentiality == 'TOP_SECRET' %}
+                                            <span class="badge bg-danger">
+                                                <i class="ph ph-lock me-1"></i>
+                                                سري
+                                            </span>
+                                            {% elif message.confidentiality == 'CONFIDENTIAL' %}
+                                            <span class="badge bg-warning">
+                                                <i class="ph ph-shield me-1"></i>
+                                                سرية
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'messaging:message_detail' message.message_id %}" 
+                                               class="modern-btn modern-btn-sm modern-btn-primary"
+                                               title="عرض التفاصيل">
+                                                <i class="ph ph-eye"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="modern-btn modern-btn-sm modern-btn-success restore-message"
+                                                    data-message-id="{{ message.message_id }}"
+                                                    title="استعادة من الأرشيف">
+                                                <i class="ph ph-arrow-counter-clockwise"></i>
+                                            </button>
+                                            <button type="button" 
+                                                    class="modern-btn modern-btn-sm modern-btn-danger delete-message"
+                                                    data-message-id="{{ message.message_id }}"
+                                                    title="حذف نهائي">
+                                                <i class="ph ph-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% if message_recipients.has_other_pages %}
+            <nav aria-label="تصفح الأرشيف" class="mt-4 animate-fade-in-up delay-1000">
+                <ul class="pagination justify-content-center modern-pagination">
+                    {% if message_recipients.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ message_recipients.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if period %}&period={{ period }}{% endif %}{% if message_type %}&type={{ message_type }}{% endif %}">
+                            <i class="ph ph-caret-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in message_recipients.paginator.page_range %}
+                    {% if message_recipients.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > message_recipients.number|add:'-3' and num < message_recipients.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if period %}&period={{ period }}{% endif %}{% if message_type %}&type={{ message_type }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if message_recipients.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ message_recipients.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if period %}&period={{ period }}{% endif %}{% if message_type %}&type={{ message_type }}{% endif %}">
+                            <i class="ph ph-caret-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="modern-card text-center py-5 animate-fade-in-up delay-900">
+                <div class="modern-card-body">
+                    <i class="ph ph-archive display-1 text-muted mb-3"></i>
+                    <h4 class="text-muted mb-3">الأرشيف فارغ</h4>
+                    <p class="text-muted mb-4">
+                        {% if search_query %}
+                            لا توجد رسائل مؤرشفة تطابق البحث "{{ search_query }}"
+                        {% else %}
+                            لا توجد رسائل مؤرشفة حالياً
+                        {% endif %}
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{% url 'messaging:inbox' %}" class="modern-btn modern-btn-primary">
+                            <i class="ph ph-envelope me-2"></i>
+                            صندوق الوارد
+                        </a>
+                        {% if search_query or period or message_type %}
+                        <a href="{% url 'messaging:archive' %}" class="modern-btn modern-btn-secondary">
+                            <i class="ph ph-arrow-counter-clockwise me-2"></i>
+                            إعادة تعيين الفلاتر
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    initializeTooltips();
+    
+    // Restore message from archive
+    document.querySelectorAll('.restore-message').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const messageId = this.dataset.messageId;
+            if (confirm('هل تريد استعادة هذه الرسالة من الأرشيف؟')) {
+                fetch(`{% url 'messaging:unarchive_message' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', messageId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Find and remove the row with animation
+                        const row = this.closest('tr');
+                        row.style.transform = 'translateX(100%)';
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 300);
+                        
+                        showCustomNotification('تم استعادة الرسالة من الأرشيف بنجاح', 'success');
+                        
+                        // Update counts
+                        updateArchiveStats();
+                    } else {
+                        showCustomNotification(data.error || 'حدث خطأ أثناء استعادة الرسالة', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showCustomNotification('حدث خطأ أثناء استعادة الرسالة', 'error');
+                });
+            }
+        });
+    });
+
+    // Delete message permanently
+    document.querySelectorAll('.delete-message').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const messageId = this.dataset.messageId;
+            if (confirm('هل أنت متأكد من الحذف النهائي لهذه الرسالة؟\nلن يمكن استرجاعها بعد الحذف.')) {
+                fetch(`{% url 'messaging:delete' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', messageId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove row with animation
+                        const row = this.closest('tr');
+                        row.style.transform = 'translateX(-100%)';
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 300);
+                        
+                        showCustomNotification('تم حذف الرسالة نهائياً', 'success');
+                        updateArchiveStats();
+                    } else {
+                        showCustomNotification('حدث خطأ أثناء حذف الرسالة', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showCustomNotification('حدث خطأ أثناء حذف الرسالة', 'error');
+                });
+            }
+        });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('archiveSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchArchive();
+            }
+        });
+    }
+
+    // Row hover effects
+    document.querySelectorAll('.archive-row').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.01)';
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+
+function searchArchive() {
+    const searchValue = document.getElementById('archiveSearch').value;
+    const currentUrl = new URL(window.location);
+    
+    if (searchValue.trim()) {
+        currentUrl.searchParams.set('search', searchValue);
+    } else {
+        currentUrl.searchParams.delete('search');
+    }
+    
+    currentUrl.searchParams.delete('page'); // Reset pagination
+    window.location.href = currentUrl.toString();
+}
+
+function exportArchive() {
+    showCustomNotification('جاري تجهيز ملف التصدير...', 'info');
+    
+    // Create download form
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "messaging:export" %}';
+    form.style.display = 'none';
+    
+    // Add CSRF token
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrfToken);
+    
+    // Add export type
+    const exportType = document.createElement('input');
+    exportType.type = 'hidden';
+    exportType.name = 'export_type';
+    exportType.value = 'archive';
+    form.appendChild(exportType);
+    
+    // Add current filters
+    const urlParams = new URLSearchParams(window.location.search);
+    ['search', 'period', 'type'].forEach(param => {
+        const value = urlParams.get(param);
+        if (value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = param;
+            input.value = value;
+            form.appendChild(input);
+        }
+    });
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+function updateArchiveStats() {
+    // Update the stats in real-time
+    const rows = document.querySelectorAll('#archiveTable tbody tr').length;
+    const countElement = document.querySelector('.modern-card-header h6');
+    if (countElement) {
+        countElement.innerHTML = `<i class="ph ph-archive me-2"></i>الرسائل المؤرشفة (${rows} رسالة)`;
+    }
+}
+
+// Client-side table search
+function initTableSearch() {
+    const searchInput = document.getElementById('archiveSearch');
+    const table = document.getElementById('archiveTable');
+    
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const rows = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < rows.length; i++) { // Skip header row
+                const row = rows[i];
+                const text = row.textContent.toLowerCase();
+                
+                if (text.indexOf(filter) > -1) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease-out';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

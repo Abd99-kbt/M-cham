@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # قاعدة البيانات
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Redis للتخزين المؤقت والمهام
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # تطبيق الويب
+  web:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 myproject.wsgi:application
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/ms
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  # Celery للمهام الخلفية
+  celery:
+    build: .
+    command: celery -A myproject worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env.production
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/ms
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  # Nginx كخادم ويب
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

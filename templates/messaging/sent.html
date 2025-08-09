@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الرسائل المرسلة - نظام المراسلات الداخلية{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item">
+    <a href="{% url 'messaging:inbox' %}">الرسائل</a>
+</li>
+<li class="breadcrumb-item active">الرسائل المرسلة</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-paper-plane me-2 text-success"></i>
+                        الرسائل المرسلة
+                    </h1>
+                    <p class="text-muted mb-0">
+                        الرسائل التي أرسلتها
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'messaging:compose' %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>
+                        إنشاء رسالة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="sidebar">
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link" href="{% url 'messaging:inbox' %}">
+                        <i class="fas fa-inbox me-2"></i>
+                        صندوق الوارد
+                    </a>
+                    <a class="nav-link active" href="{% url 'messaging:sent' %}">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        الرسائل المرسلة
+                        <span class="badge bg-success ms-auto">{{ messages.paginator.count }}</span>
+                    </a>
+                    <a class="nav-link" href="{% url 'messaging:drafts' %}">
+                        <i class="fas fa-save me-2"></i>
+                        المسودات
+                    </a>
+                    <a class="nav-link" href="{% url 'messaging:archive' %}">
+                        <i class="fas fa-archive me-2"></i>
+                        الأرشيف
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sent Messages List -->
+        <div class="col-lg-9">
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="card message-card mb-3" data-id="{{ message.message_id }}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title mb-1">
+                                            <a href="{% url 'messaging:message_detail' message.message_id %}" 
+                                               class="text-decoration-none text-dark">
+                                                {{ message.subject }}
+                                            </a>
+                                        </h5>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <small class="text-muted me-3">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ message.created_at|timesince }}
+                                            </small>
+                                            <small class="text-muted">
+                                                <i class="fas fa-users me-1"></i>
+                                                إلى: 
+                                                {% for recipient in message.messagerecipient_set.all|slice:":3" %}
+                                                    {{ recipient.recipient.arabic_name|default:recipient.recipient.username }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                                {% if message.messagerecipient_set.count > 3 %}
+                                                    و {{ message.messagerecipient_set.count|add:"-3" }} آخرين
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <!-- Status Badge -->
+                                        {% if message.status == 'SENT' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>
+                                            مرسلة
+                                        </span>
+                                        {% elif message.status == 'READ' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-eye me-1"></i>
+                                            مقروءة
+                                        </span>
+                                        {% elif message.status == 'REPLIED' %}
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-reply me-1"></i>
+                                            تم الرد
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Preview -->
+                                <p class="card-text text-muted mb-3">
+                                    {{ message.body|truncatechars:200 }}
+                                </p>
+
+                                <!-- Read Status -->
+                                <div class="mb-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <small class="text-muted">معدل القراءة:</small>
+                                                    <div class="progress" style="height: 6px; width: 100px;">
+                                                        {% with total_count=message.messagerecipient_set.count %}
+                                                        {% with read_count=message.messagerecipient_set.exclude_read_at__isnull.count %}
+                                                        <div class="progress-bar bg-success" 
+                                                             style="width: {% if total_count > 0 %}{% widthratio read_count total_count 100 %}{% else %}0{% endif %}%"></div>
+                                                        {% endwith %}
+                                                        {% endwith %}
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    {{ message.messagerecipient_set.exclude_read_at__isnull.count }}/{{ message.messagerecipient_set.count }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            {% if message.messagerecipient_set.exclude_read_at__isnull.exists %}
+                                            <small class="text-success">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                آخر قراءة: {{ message.messagerecipient_set.exclude_read_at__isnull.latest.read_at|timesince }}
+                                            </small>
+                                            {% else %}
+                                            <small class="text-warning">
+                                                <i class="fas fa-clock me-1"></i>
+                                                لم تُقرأ بعد
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tags and Actions -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <!-- Priority -->
+                                        {% if message.priority == 'URGENT' %}
+                                        <span class="message-priority priority-urgent">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            عاجلة
+                                        </span>
+                                        {% elif message.priority == 'HIGH' %}
+                                        <span class="message-priority priority-high">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            مهمة
+                                        </span>
+                                        {% else %}
+                                        <span class="message-priority priority-normal">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            عادية
+                                        </span>
+                                        {% endif %}
+
+                                        <!-- Category -->
+                                        <span class="badge bg-secondary ms-2">
+                                            {{ message.category.description }}
+                                        </span>
+
+                                        <!-- Confidentiality -->
+                                        {% if message.confidentiality == 'HIGHLY_CONFIDENTIAL' %}
+                                        <span class="badge bg-danger ms-2">
+                                            <i class="fas fa-lock me-1"></i>
+                                            سرية للغاية
+                                        </span>
+                                        {% elif message.confidentiality == 'CONFIDENTIAL' %}
+                                        <span class="badge bg-warning ms-2">
+                                            <i class="fas fa-shield-alt me-1"></i>
+                                            سرية
+                                        </span>
+                                        {% endif %}
+
+                                        <!-- Attachments -->
+                                        {% if message.messageattachment_set.count > 0 %}
+                                        <span class="badge bg-info ms-2">
+                                            <i class="fas fa-paperclip me-1"></i>
+                                            {{ message.messageattachment_set.count }} مرفق
+                                        </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'messaging:message_detail' message.message_id %}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="عرض التفاصيل">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-info view-recipients"
+                                                data-message-id="{{ message.message_id }}"
+                                                title="عرض المستلمين">
+                                            <i class="fas fa-users"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger delete-message"
+                                                data-message-id="{{ message.message_id }}"
+                                                title="حذف الرسالة">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if messages.has_other_pages %}
+            <nav aria-label="تصفح الرسائل المرسلة" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if messages.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ messages.previous_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in messages.paginator.page_range %}
+                    {% if messages.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > messages.number|add:'-3' and num < messages.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if messages.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ messages.next_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-paper-plane fs-1 text-muted mb-3"></i>
+                    <h4 class="text-muted">لا توجد رسائل مرسلة</h4>
+                    <p class="text-muted">لم ترسل أي رسائل بعد</p>
+                    <a href="{% url 'messaging:compose' %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>
+                        إنشاء رسالة جديدة
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recipients Modal -->
+<div class="modal fade" id="recipientsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-users me-2"></i>
+                    قائمة المستلمين
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="recipients-list">
+                    <!-- Recipients will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // View recipients
+    $('.view-recipients').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const messageId = $(this).data('message-id');
+        
+        // Load recipients
+        $.ajax({
+            url: `/messaging/api/recipients/${messageId}/`,
+            method: 'GET',
+            success: function(data) {
+                let recipientsList = '';
+                data.recipients.forEach(recipient => {
+                    let statusBadge = '';
+                    if (recipient.read_at) {
+                        statusBadge = `<span class="badge bg-success"><i class="fas fa-check me-1"></i>مقروءة</span>`;
+                    } else {
+                        statusBadge = `<span class="badge bg-warning"><i class="fas fa-clock me-1"></i>غير مقروءة</span>`;
+                    }
+                    
+                    recipientsList += `
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-circle me-3 text-primary fs-4"></i>
+                                <div>
+                                    <div class="fw-bold">${recipient.name}</div>
+                                    <small class="text-muted">${recipient.position} - ${recipient.department}</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                ${statusBadge}
+                                ${recipient.read_at ? `<div class="small text-muted mt-1">قُرئت ${recipient.read_at}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                $('#recipients-list').html(recipientsList);
+                $('#recipientsModal').modal('show');
+            },
+            error: function() {
+                BankingSystem.showAlert('حدث خطأ أثناء تحميل قائمة المستلمين', 'danger');
+            }
+        });
+    });
+
+    // Delete message
+    $('.delete-message').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const messageId = $(this).data('message-id');
+        if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+            BankingSystem.deleteMessage(messageId);
+        }
+    });
+});
+</script>
+{% endblock %}

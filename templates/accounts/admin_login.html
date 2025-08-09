@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول المدير - مرسال | بنك الشام</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- تحميل Phosphor Icons مع fallback -->
+    <link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css" crossorigin="anonymous" onerror="loadPhosphorFallback()">
+    
+    <script>
+        function loadPhosphorFallback() {
+            const fallbackLink = document.createElement('link');
+            fallbackLink.rel = 'stylesheet';
+            fallbackLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/phosphor-icons/1.4.2/css/phosphor.min.css';
+            fallbackLink.crossOrigin = 'anonymous';
+            document.head.appendChild(fallbackLink);
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link href="{% static 'css/modern-theme.css' %}" rel="stylesheet">
+</head>
+<body class="admin-login-body">
+    <div class="admin-login-container d-flex align-items-center justify-content-center min-vh-100">
+        <div class="admin-login-wrapper">
+            <!-- Left Side - Branding -->
+            <div class="admin-login-brand">
+                <div class="brand-content">
+                    <img src="{% static 'images/logo-cham.jpg' %}" alt="شعار بنك الشام" class="brand-logo">
+                    <div class="system-branding mb-3">
+                        <div class="system-name">مرسال</div>
+                        <div class="system-tagline">منصة المراسلات الداخلية</div>
+                    </div>
+                    <h1 class="brand-title">بنك الشام</h1>
+                    <p class="brand-subtitle">لوحة تحكم المدير</p>
+                    <div class="brand-features">
+                        <div class="feature-item">
+                            <i class="ph ph-envelope-open"></i>
+                            <span>إدارة المراسلات</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="ph ph-users-three"></i>
+                            <span>إدارة المستخدمين</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="ph ph-chart-line"></i>
+                            <span>التقارير والإحصائيات</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Login Form -->
+            <div class="admin-login-form-section">
+                <div class="login-form-container">
+                    <div class="login-header text-center mb-4">
+                        <div class="admin-icon">
+                            <i class="ph ph-shield-star"></i>
+                        </div>
+                        <h2 class="login-title">مدير مرسال</h2>
+                        <p class="login-subtitle">لوحة تحكم منصة المراسلات الداخلية</p>
+                    </div>
+                    
+                    {% if messages %}
+                    <div class="messages-container mb-4">
+                        {% for message in messages %}
+                        <div class="modern-alert modern-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                            <i class="ph ph-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}x-circle{% elif message.tags == 'warning' %}warning-circle{% else %}info{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" autocomplete="off" class="admin-form" id="adminLoginForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-4">
+                            <label for="id_username" class="modern-form-label">
+                                <i class="ph ph-user me-2"></i>
+                                اسم مستخدم المدير
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" 
+                                       class="modern-form-control" 
+                                       id="id_username" 
+                                       name="username" 
+                                       placeholder="أدخل اسم المستخدم"
+                                       required 
+                                       autofocus 
+                                       autocomplete="username">
+                                <div class="input-icon">
+                                    <i class="ph ph-user"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="id_password" class="modern-form-label">
+                                <i class="ph ph-lock me-2"></i>
+                                كلمة المرور
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="password" 
+                                       class="modern-form-control" 
+                                       id="id_password" 
+                                       name="password" 
+                                       placeholder="أدخل كلمة المرور"
+                                       required 
+                                       autocomplete="current-password">
+                                <div class="input-icon">
+                                    <i class="ph ph-lock"></i>
+                                </div>
+                                <button type="button" class="password-toggle" id="togglePassword">
+                                    <i class="ph ph-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <button type="submit" class="modern-btn modern-btn-primary w-100 modern-btn-lg" id="loginBtn">
+                                <i class="ph ph-sign-in me-2"></i>
+                                <span class="btn-text">دخول لوحة التحكم</span>
+                                <div class="loading-spinner" style="display: none;">
+                                    <div class="spinner"></div>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <div class="form-footer text-center">
+                            <a href="{% url 'accounts:login' %}" class="back-link">
+                                <i class="ph ph-arrow-left me-1"></i>
+                                العودة لتسجيل دخول الموظفين
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <div class="security-notice text-center mt-4">
+                        <small class="security-text">
+                            <i class="ph ph-shield-warning me-1"></i>
+                            جميع محاولات الدخول مسجلة ومراقبة
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="admin-login-footer text-center">
+            <small>&copy; {{ now|date:'Y' }} بنك الشام. جميع الحقوق محفوظة.</small>
+        </div>
+    </div>
+
+    
+    <style>
+        /* Admin Login Page Specific Styles */
+        .admin-login-body {
+            background: linear-gradient(135deg, var(--cham-bg-main) 0%, #f0f2f5 100%);
+            font-family: var(--cham-font-family);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .admin-login-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a51c30' fill-opacity='0.02'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            animation: float 30s linear infinite;
+        }
+
+        .admin-login-container {
+            position: relative;
+            z-index: 1;
+            padding: 2rem 1rem;
+        }
+
+        .admin-login-wrapper {
+            background: white;
+            border-radius: var(--cham-radius-xl);
+            box-shadow: var(--cham-shadow-lg);
+            max-width: 1000px;
+            width: 100%;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 600px;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        /* Left Side - Branding */
+        .admin-login-brand {
+            background: linear-gradient(135deg, var(--cham-primary) 0%, var(--cham-primary-dark) 100%);
+            color: white;
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-login-brand::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='40' cy='40' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            animation: float 25s linear infinite reverse;
+        }
+
+        .brand-content {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .system-branding {
+            text-align: center;
+        }
+
+        .system-name {
+            font-size: 3rem;
+            font-weight: var(--cham-font-weight-bold);
+            color: white;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+            font-family: 'Tajawal', serif;
+        }
+
+        .system-tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+            color: rgba(255,255,255,0.9);
+            font-weight: var(--cham-font-weight-medium);
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--cham-radius-lg);
+            display: inline-block;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .brand-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .brand-title {
+            font-size: 2.5rem;
+            font-weight: var(--cham-font-weight-bold);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .brand-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            font-weight: var(--cham-font-weight-normal);
+        }
+
+        .brand-features {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .feature-item i {
+            font-size: 1.25rem;
+        }
+
+        /* Right Side - Form */
+        .admin-login-form-section {
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            margin-bottom: 2rem;
+        }
+
+        .admin-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--cham-primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .admin-icon i {
+            font-size: 2rem;
+            color: var(--cham-primary);
+        }
+
+        .login-title {
+            font-size: 1.75rem;
+            font-weight: var(--cham-font-weight-bold);
+            color: var(--cham-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            color: var(--cham-text-secondary);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--cham-text-muted);
+            font-size: 1.1rem;
+            z-index: 2;
+        }
+
+        .modern-form-control {
+            padding-right: 3rem;
+            padding-left: 3rem;
+        }
+
+        .input-wrapper.focused .input-icon {
+            color: var(--cham-primary);
+        }
+
+        .input-wrapper.focused .modern-form-control {
+            border-color: var(--cham-primary);
+            box-shadow: 0 0 0 3px rgba(165, 28, 48, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--cham-text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: all var(--cham-transition-fast);
+            z-index: 2;
+        }
+
+        .password-toggle:hover {
+            background: var(--cham-primary-light);
+            color: var(--cham-primary);
+        }
+
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-left-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .back-link {
+            color: var(--cham-text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color var(--cham-transition-fast);
+        }
+
+        .back-link:hover {
+            color: var(--cham-primary);
+            text-decoration: none;
+        }
+
+        .security-text {
+            color: var(--cham-text-muted);
+            font-size: 0.8rem;
+        }
+
+        .admin-login-footer {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--cham-text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            from { transform: translateX(0px); }
+            to { transform: translateX(-60px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Loading State */
+        #loginBtn.loading .btn-text {
+            opacity: 0;
+        }
+
+        #loginBtn.loading .loading-spinner {
+            display: flex;
+        }
+
+        #loginBtn:not(.loading) .loading-spinner {
+            display: none;
+        }
+
+        /* Additional Animations */
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .admin-login-wrapper {
+                grid-template-columns: 1fr;
+                max-width: 450px;
+                min-height: auto;
+            }
+
+            .admin-login-brand {
+                padding: 2rem;
+                order: 2;
+            }
+
+            .admin-login-form-section {
+                padding: 2rem;
+                order: 1;
+            }
+
+            .brand-title {
+                font-size: 2rem;
+            }
+
+            .system-name {
+                font-size: 2.2rem;
+            }
+
+            .system-tagline {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .login-title {
+                font-size: 1.5rem;
+            }
+
+            .brand-features {
+                flex-direction: row;
+                justify-content: space-around;
+                gap: 0.5rem;
+            }
+
+            .feature-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.25rem;
+                font-size: 0.85rem;
+            }
+
+            .admin-login-footer {
+                position: static;
+                margin-top: 2rem;
+                transform: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-login-container {
+                padding: 1rem;
+            }
+
+            .admin-login-brand {
+                padding: 1.5rem;
+            }
+
+            .admin-login-form-section {
+                padding: 1.5rem;
+            }
+
+            .brand-logo {
+                width: 60px;
+                height: 60px;
+            }
+
+            .system-name {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle functionality
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordField = document.getElementById('id_password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (togglePassword && passwordField && eyeIcon) {
+                togglePassword.addEventListener('click', function() {
+                    if (passwordField.type === 'password') {
+                        passwordField.type = 'text';
+                        eyeIcon.className = 'ph ph-eye-slash';
+                    } else {
+                        passwordField.type = 'password';
+                        eyeIcon.className = 'ph ph-eye';
+                    }
+                });
+            }
+
+            // Form submission with loading state
+            const form = document.getElementById('adminLoginForm');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (form && loginBtn) {
+                let isSubmitting = false;
+                
+                form.addEventListener('submit', function(e) {
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        form.classList.add('was-validated');
+                        return;
+                    }
+                    
+                    // Show loading state
+                    isSubmitting = true;
+                    loginBtn.classList.add('loading');
+                    loginBtn.disabled = true;
+                    
+                    // Restore button after 15 seconds as fallback
+                    setTimeout(() => {
+                        loginBtn.classList.remove('loading');
+                        loginBtn.disabled = false;
+                        isSubmitting = false;
+                    }, 15000);
+                });
+            }
+
+            // Enhanced input focus effects
+            const inputs = document.querySelectorAll('.modern-form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    const wrapper = this.closest('.input-wrapper');
+                    if (wrapper) {
+                        wrapper.classList.add('focused');
+                    }
+                });
+
+                input.addEventListener('blur', function() {
+                    const wrapper = this.closest('.input-wrapper');
+                    if (wrapper) {
+                        wrapper.classList.remove('focused');
+                    }
+                });
+            });
+
+            // Caps Lock detection
+            if (passwordField) {
+                passwordField.addEventListener('keypress', function(e) {
+                    const capsLock = e.getModifierState && e.getModifierState('CapsLock');
+                    
+                    // Remove existing warning
+                    const existingWarning = document.querySelector('.caps-warning');
+                    if (existingWarning) {
+                        existingWarning.remove();
+                    }
+                    
+                    if (capsLock) {
+                        const warning = document.createElement('div');
+                        warning.className = 'caps-warning mt-1';
+                        warning.innerHTML = '<small class="text-warning"><i class="ph ph-warning me-1"></i>تم تفعيل Caps Lock</small>';
+                        this.closest('.form-group').appendChild(warning);
+                    }
+                });
+            }
+
+            // Auto-focus on username field
+            const usernameField = document.getElementById('id_username');
+            if (usernameField) {
+                setTimeout(() => {
+                    usernameField.focus();
+                }, 300);
+            }
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl + Enter to submit form
+                if (e.ctrlKey && e.key === 'Enter' && form) {
+                    form.submit();
+                }
+                
+                // Escape to clear form
+                if (e.key === 'Escape') {
+                    inputs.forEach(input => input.value = '');
+                    if (usernameField) usernameField.focus();
+                }
+            });
+
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.modern-alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.animation = 'slideOutRight 0.5s ease-in forwards';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

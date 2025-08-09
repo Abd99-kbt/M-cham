@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إدارة المجموعات - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-users-three"></i> إدارة المجموعات</h4>
+        <a href="{% url 'accounts:add_group' %}" class="btn btn-primary">
+            <i class="ph ph-plus"></i> إضافة مجموعة
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- مربع الشرح -->
+        <div class="alert alert-info mb-3">
+            <h5 class="alert-heading"><i class="ph ph-info"></i> دليل الإجراءات المتاحة</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <button class="btn btn-sm btn-outline-info me-1"><i class="ph ph-eye"></i></button>
+                            <span>عرض تفاصيل المجموعة وأعضائها</span>
+                        </li>
+                        <li class="mb-2">
+                            <button class="btn btn-sm btn-outline-primary me-1"><i class="ph ph-pencil"></i></button>
+                            <span>تعديل بيانات المجموعة</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <button class="btn btn-sm btn-outline-danger me-1"><i class="ph ph-trash"></i></button>
+                            <span>حذف المجموعة من النظام</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>اسم المجموعة</th>
+                    <th>عدد الأعضاء</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in groups %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ group.name }}</td>
+                    <td>{{ group.members.count }}</td>
+                    <td>{{ group.created_at|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'accounts:group_detail' group.id %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-placement="top" title="عرض تفاصيل المجموعة وأعضائها">
+                                <i class="ph ph-eye"></i>
+                            </a>
+                            <a href="{% url 'accounts:edit_group' group.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="تعديل بيانات المجموعة">
+                                <i class="ph ph-pencil"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="حذف المجموعة من النظام" onclick="return confirm('هل أنت متأكد من حذف هذه المجموعة؟');">
+                                <i class="ph ph-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">لا توجد مجموعات.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تفعيل tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

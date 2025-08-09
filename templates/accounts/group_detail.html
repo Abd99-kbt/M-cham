@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}تفاصيل المجموعة - {{ group.name }} - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-users-three"></i> تفاصيل المجموعة: {{ group.name }}</h4>
+        <div>
+            <a href="{% url 'accounts:edit_group' group.id %}" class="btn btn-primary">
+                <i class="ph ph-pencil"></i> تعديل المجموعة
+            </a>
+            <a href="{% url 'accounts:groups' %}" class="btn btn-secondary">
+                <i class="ph ph-arrow-left"></i> العودة للقائمة
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="ph ph-info"></i> معلومات المجموعة</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%">اسم المجموعة</th>
+                                    <td>{{ group.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>الوصف</th>
+                                    <td>{{ group.description|default:"-"|linebreaks }}</td>
+                                </tr>
+                                <tr>
+                                    <th>عدد الأعضاء</th>
+                                    <td>{{ group.members.count }}</td>
+                                </tr>
+                                <tr>
+                                    <th>منشئ المجموعة</th>
+                                    <td>{{ group.created_by.arabic_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>تاريخ الإنشاء</th>
+                                    <td>{{ group.created_at|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="ph ph-users"></i> أعضاء المجموعة</h5>
+                        <span class="badge bg-primary">{{ group.members.count }} عضو</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for member in group.members.all %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ member.arabic_name }}</h6>
+                                    <small class="text-muted">{{ member.username }} - {{ member.position.title }}</small>
+                                </div>
+                                <div>
+                                    <span class="badge bg-light text-dark">{{ member.department.name }}</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="list-group-item text-center">لا يوجد أعضاء في هذه المجموعة</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="ph ph-table"></i> جدول الأعضاء</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الاسم</th>
+                                <th>اسم المستخدم</th>
+                                <th>القسم</th>
+                                <th>المنصب</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in group.members.all %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ member.arabic_name }}</td>
+                                <td>{{ member.username }}</td>
+                                <td>{{ member.department.name }}</td>
+                                <td>{{ member.position.title }}</td>
+                                <td>
+                                    <span class="badge bg-{% if member.is_active %}success{% else %}danger{% endif %}">
+                                        {% if member.is_active %}نشط{% else %}معطل{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-danger remove-member" data-user-id="{{ member.id }}" data-bs-toggle="tooltip" title="إزالة من المجموعة">
+                                        <i class="ph ph-minus-circle"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">لا يوجد أعضاء في هذه المجموعة</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تفعيل tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // معالجة أزرار إزالة الأعضاء
+        document.querySelectorAll('.remove-member').forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const userId = this.dataset.userId;
+                
+                if (confirm('هل أنت متأكد من إزالة هذا المستخدم من المجموعة؟')) {
+                    // يمكن إضافة طلب AJAX هنا للإزالة بدون إعادة تحميل الصفحة
+                    window.location.href = `{% url 'accounts:groups' %}${userId}/remove-from-group/${group.id}/`;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

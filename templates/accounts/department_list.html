@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إدارة الأقسام - بنك الشام{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item active">إدارة الأقسام</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="modern-page-title animate-fade-in-right">
+                        <i class="ph ph-buildings"></i>
+                        إدارة الأقسام
+                    </h1>
+                    <p class="modern-page-subtitle animate-fade-in-right delay-100">
+                        إدارة أقسام البنك والهيكل التنظيمي
+                    </p>
+                </div>
+                <div class="animate-fade-in-right delay-200">
+                    <a href="{% url 'accounts:add_department' %}" class="modern-btn modern-btn-primary modern-btn-lg">
+                        <i class="ph ph-plus"></i>
+                        <span>إضافة قسم جديد</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-100">
+                <i class="modern-stat-icon ph ph-buildings"></i>
+                <div class="modern-stat-number">{{ departments.count|default:0 }}</div>
+                <div class="modern-stat-label">إجمالي الأقسام</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-200">
+                <i class="modern-stat-icon ph ph-tree-structure"></i>
+                <div class="modern-stat-number">{{ main_departments|default:0 }}</div>
+                <div class="modern-stat-label">الأقسام الرئيسية</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-300">
+                <i class="modern-stat-icon ph ph-users-three"></i>
+                <div class="modern-stat-number">{{ departments_with_managers|default:0 }}</div>
+                <div class="modern-stat-label">أقسام لها مدراء</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-400">
+                <i class="modern-stat-icon ph ph-user-list"></i>
+                <div class="modern-stat-number">{{ total_employees|default:0 }}</div>
+                <div class="modern-stat-label">إجمالي الموظفين</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Guide -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card animate-fade-in-up delay-500">
+                <div class="modern-card-header">
+                    <h5 class="mb-0">
+                        <i class="ph ph-info me-2"></i>
+                        دليل الإجراءات المتاحة
+                    </h5>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="modern-btn modern-btn-secondary modern-btn-sm me-3">
+                                    <i class="ph ph-eye"></i>
+                                </div>
+                                <div>
+                                    <strong>عرض التفاصيل</strong>
+                                    <br>
+                                    <small class="text-muted">عرض تفاصيل القسم والموظفين</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="modern-btn modern-btn-primary modern-btn-sm me-3">
+                                    <i class="ph ph-pencil"></i>
+                                </div>
+                                <div>
+                                    <strong>تعديل البيانات</strong>
+                                    <br>
+                                    <small class="text-muted">تعديل معلومات القسم</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="modern-btn modern-btn-danger modern-btn-sm me-3">
+                                    <i class="ph ph-trash"></i>
+                                </div>
+                                <div>
+                                    <strong>حذف نهائي</strong>
+                                    <br>
+                                    <small class="text-muted">إزالة القسم من النظام</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Departments Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card animate-fade-in-up delay-600">
+                <div class="modern-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="ph ph-table me-2"></i>
+                            قائمة الأقسام
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <div class="input-group" style="width: 300px;">
+                                <input type="text" class="modern-form-control" placeholder="البحث في الأقسام..." id="departmentSearch">
+                                <button class="modern-btn modern-btn-secondary" type="button">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modern-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th width="60">#</th>
+                                    <th>اسم القسم</th>
+                                    <th>رمز القسم</th>
+                                    <th>القسم الأعلى</th>
+                                    <th>مدير القسم</th>
+                                    <th>عدد الموظفين</th>
+                                    <th width="180">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for department in departments %}
+                                <tr class="department-row animate-fade-in-up" style="animation-delay: {{ forloop.counter0|add:6 }}00ms">
+                                    <td>
+                                        <div class="fw-semibold text-muted">{{ forloop.counter }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-3 d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="ph ph-buildings text-white"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ department.name }}</div>
+                                                <small class="text-muted">{{ department.description|default:"لا يوجد وصف" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code class="bg-light px-2 py-1 rounded">{{ department.code|default:"-" }}</code>
+                                    </td>
+                                    <td>
+                                        {% if department.parent_department %}
+                                            <div class="d-flex align-items-center">
+                                                <i class="ph ph-tree-structure text-muted me-2"></i>
+                                                <span>{{ department.parent_department.name }}</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="badge bg-primary">قسم رئيسي</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if department.manager %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                                     style="width: 30px; height: 30px;">
+                                                    <span class="text-white fw-bold small">{{ department.manager.arabic_name|first }}</span>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ department.manager.arabic_name }}</div>
+                                                    <small class="text-muted">{{ department.manager.position.title|default:"-" }}</small>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info fs-6">
+                                            <i class="ph ph-users me-1"></i>
+                                            {{ department.employees.count|default:0 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'accounts:department_detail' department.id %}" 
+                                               class="modern-btn modern-btn-secondary modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="عرض التفاصيل">
+                                                <i class="ph ph-eye"></i>
+                                            </a>
+                                            <a href="{% url 'accounts:edit_department' department.id %}" 
+                                               class="modern-btn modern-btn-primary modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="تعديل البيانات">
+                                                <i class="ph ph-pencil"></i>
+                                            </a>
+                                            <a href="#" 
+                                               class="modern-btn modern-btn-danger modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="حذف نهائي"
+                                               onclick="return confirm('هل أنت متأكد من حذف هذا القسم؟ سيتم حذف جميع البيانات المرتبطة به.');">
+                                                <i class="ph ph-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="ph ph-buildings fs-1 d-block mb-3"></i>
+                                            <h5>لا توجد أقسام</h5>
+                                            <p>ابدأ بإضافة قسم جديد</p>
+                                            <a href="{% url 'accounts:add_department' %}" class="modern-btn modern-btn-primary">
+                                                <i class="ph ph-plus me-1"></i>
+                                                إضافة قسم
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تفعيل tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // البحث في الأقسام
+    const searchInput = document.getElementById('departmentSearch');
+    const departmentRows = document.querySelectorAll('.department-row');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            departmentRows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const code = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const parent = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                const manager = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+                
+                const matches = name.includes(searchTerm) || 
+                              code.includes(searchTerm) || 
+                              parent.includes(searchTerm) || 
+                              manager.includes(searchTerm);
+                
+                if (matches || searchTerm === '') {
+                    row.style.display = '';
+                    row.style.animation = 'fadeInUp 0.3s ease-out';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // تأثيرات hover للصفوف
+    departmentRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(-4px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // إضافة تأثير loading للأزرار
+    document.querySelectorAll('.modern-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (this.href && !this.onclick) {
+                this.classList.add('loading');
+                setTimeout(() => {
+                    this.classList.remove('loading');
+                }, 3000);
+            }
+        });
+    });
+    
+    // تأثير على بطاقات الإحصائيات
+    const statCards = document.querySelectorAll('.modern-stat-card');
+    statCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px) scale(1.02)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+
+<style>
+.department-row {
+    transition: all 0.2s ease;
+}
+
+.department-row:hover {
+    background-color: rgba(165, 28, 48, 0.02) !important;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تحسين التصميم المتجاوب */
+@media (max-width: 768px) {
+    .modern-page-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .btn-group .modern-btn {
+        border-radius: var(--cham-radius-md) !important;
+    }
+    
+    .modern-table thead th:nth-child(n+4) {
+        display: none;
+    }
+    
+    .modern-table tbody td:nth-child(n+4) {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .modern-table thead th:nth-child(3) {
+        display: none;
+    }
+    
+    .modern-table tbody td:nth-child(3) {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

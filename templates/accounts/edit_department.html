@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}تعديل القسم - {{ department.name }} - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-pencil"></i> تعديل القسم: {{ department.name }}</h4>
+        <div>
+            <a href="{% url 'accounts:department_detail' department.id %}" class="btn btn-secondary">
+                <i class="ph ph-arrow-left"></i> العودة للتفاصيل
+            </a>
+            <a href="{% url 'accounts:departments' %}" class="btn btn-outline-secondary">
+                <i class="ph ph-list"></i> قائمة الأقسام
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'accounts:edit_department' department.id %}">
+            {% csrf_token %}
+            
+            <div class="alert alert-info mb-4">
+                <i class="ph ph-info"></i> قم بتعديل بيانات القسم ثم اضغط على زر "حفظ التغييرات" في نهاية الصفحة.
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="name" class="form-label">اسم القسم <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ department.name }}" required>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="code" class="form-label">رمز القسم <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="code" name="code" value="{{ department.code }}" required>
+                        <small class="form-text text-muted">رمز فريد للقسم (حروف وأرقام فقط)</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="parent_department" class="form-label">القسم الأعلى</label>
+                        <select class="form-select" id="parent_department" name="parent_department">
+                            <option value="">- لا يوجد -</option>
+                            {% for dept in departments %}
+                                {% if dept.id != department.id %}
+                                <option value="{{ dept.id }}" {% if department.parent_department.id == dept.id %}selected{% endif %}>
+                                    {{ dept.name }}
+                                </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">اختر القسم الأعلى إذا كان هذا القسم فرعياً</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="manager" class="form-label">مدير القسم</label>
+                        <select class="form-select" id="manager" name="manager">
+                            <option value="">- لا يوجد -</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" {% if department.manager.id == user.id %}selected{% endif %}>
+                                {{ user.arabic_name }} ({{ user.username }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="description" class="form-label">الوصف</label>
+                        <textarea class="form-control" id="description" name="description" rows="5">{{ department.description }}</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="ph ph-floppy-disk"></i> حفظ التغييرات
+                </button>
+                <a href="{% url 'accounts:department_detail' department.id %}" class="btn btn-outline-secondary">
+                    <i class="ph ph-x"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تفعيل Select2 لتحسين قوائم الاختيار
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('#parent_department').select2({
+                placeholder: "اختر القسم الأعلى",
+                allowClear: true
+            });
+            
+            $('#manager').select2({
+                placeholder: "اختر مدير القسم",
+                allowClear: true
+            });
+        }
+    });
+</script>
+{% endblock %}

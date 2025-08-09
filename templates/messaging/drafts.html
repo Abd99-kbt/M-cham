@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}المسودات - نظام المراسلات الداخلية{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item">
+    <a href="{% url 'messaging:inbox' %}">الرسائل</a>
+</li>
+<li class="breadcrumb-item active">المسودات</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-save me-2 text-warning"></i>
+                        المسودات
+                    </h1>
+                    <p class="text-muted mb-0">
+                        الرسائل المحفوظة كمسودات
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'messaging:compose' %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>
+                        إنشاء رسالة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="sidebar">
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link" href="{% url 'messaging:inbox' %}">
+                        <i class="fas fa-inbox me-2"></i>
+                        صندوق الوارد
+                    </a>
+                    <a class="nav-link" href="{% url 'messaging:sent' %}">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        الرسائل المرسلة
+                    </a>
+                    <a class="nav-link active" href="{% url 'messaging:drafts' %}">
+                        <i class="fas fa-save me-2"></i>
+                        المسودات
+                        <span class="badge bg-warning ms-auto">{{ messages.paginator.count }}</span>
+                    </a>
+                    <a class="nav-link" href="{% url 'messaging:archive' %}">
+                        <i class="fas fa-archive me-2"></i>
+                        الأرشيف
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drafts List -->
+        <div class="col-lg-9">
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="card message-card mb-3" data-id="{{ message.message_id }}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h5 class="card-title mb-1">
+                                            {% if message.subject %}
+                                                {{ message.subject }}
+                                            {% else %}
+                                                <span class="text-muted">(بدون موضوع)</span>
+                                            {% endif %}
+                                        </h5>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            تم الحفظ {{ message.updated_at|timesince }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-save me-1"></i>
+                                            مسودة
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Preview -->
+                                <p class="card-text text-muted mb-3">
+                                    {% if message.body %}
+                                        {{ message.body|truncatechars:200 }}
+                                    {% else %}
+                                        <em>لا يوجد محتوى بعد...</em>
+                                    {% endif %}
+                                </p>
+
+                                <!-- Tags -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if message.category %}
+                                        <span class="badge bg-secondary">
+                                            {{ message.category.description }}
+                                        </span>
+                                        {% endif %}
+
+                                        {% if message.priority != 'NORMAL' %}
+                                        <span class="badge bg-{{ message.priority|lower }}">
+                                            {{ message.get_priority_display }}
+                                        </span>
+                                        {% endif %}
+
+                                        {% if message.messageattachment_set.count > 0 %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-paperclip me-1"></i>
+                                            {{ message.messageattachment_set.count }} مرفق
+                                        </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'messaging:compose' %}?draft={{ message.message_id }}" 
+                                           class="btn btn-sm btn-primary"
+                                           title="متابعة التحرير">
+                                            <i class="fas fa-edit"></i>
+                                            تحرير
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger delete-draft"
+                                                data-message-id="{{ message.message_id }}"
+                                                title="حذف المسودة">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if messages.has_other_pages %}
+            <nav aria-label="تصفح المسودات" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if messages.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ messages.previous_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in messages.paginator.page_range %}
+                    {% if messages.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > messages.number|add:'-3' and num < messages.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if messages.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ messages.next_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-save fs-1 text-muted mb-3"></i>
+                    <h4 class="text-muted">لا توجد مسودات</h4>
+                    <p class="text-muted">لم تقم بحفظ أي مسودات بعد</p>
+                    <a href="{% url 'messaging:compose' %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>
+                        إنشاء رسالة جديدة
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Delete draft
+    $('.delete-draft').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const messageId = $(this).data('message-id');
+        if (confirm('هل أنت متأكد من حذف هذه المسودة؟ لن يمكن استرجاعها.')) {
+            // Delete draft
+            $.ajax({
+                url: `/messaging/delete/${messageId}/`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(data) {
+                    if (data.success) {
+                        $(`.message-card[data-id="${messageId}"]`).fadeOut();
+                        BankingSystem.showAlert('تم حذف المسودة بنجاح', 'success');
+                    }
+                },
+                error: function() {
+                    BankingSystem.showAlert('حدث خطأ أثناء حذف المسودة', 'danger');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

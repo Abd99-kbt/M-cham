@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تحويل: {{ original_message.subject }}{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item"><a href="{% url 'messaging:inbox' %}">الرسائل</a></li>
+<li class="breadcrumb-item"><a href="{% url 'messaging:message_detail' original_message.message_id %}">عرض الرسالة</a></li>
+<li class="breadcrumb-item active">تحويل</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-share me-2 text-primary"></i>
+                تحويل الرسالة
+            </h1>
+        </div>
+    </div>
+
+    <!-- Forward Form -->
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{% url 'messaging:forward' original_message.message_id %}">
+                {% csrf_token %}
+                
+                <!-- Recipients -->
+                <div class="mb-3">
+                    <label for="id_recipients" class="form-label fw-bold">إلى <span class="text-danger">*</span></label>
+                    <select class="form-select" 
+                            id="id_recipients" 
+                            name="recipients" 
+                            multiple 
+                            required
+                            size="5">
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.arabic_name }} ({{ user.department.name }})</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">
+                        استخدم Ctrl + Click لاختيار عدة مستقبلين.
+                    </div>
+                </div>
+
+                <!-- Additional Notes -->
+                <div class="mb-3">
+                    <label for="id_additional_notes" class="form-label fw-bold">إضافة ملاحظات (اختياري)</label>
+                    <textarea class="form-control" 
+                              id="id_additional_notes" 
+                              name="additional_notes" 
+                              rows="4"
+                              placeholder="أضف ملاحظاتك هنا..."></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'messaging:message_detail' original_message.message_id %}" class="btn btn-outline-secondary me-2">
+                        إلغاء
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-share me-2"></i>
+                        إرسال التحويل
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Original Message -->
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                الرسالة الأصلية
+            </h5>
+        </div>
+        <div class="card-body">
+            <p><strong>من:</strong> {{ original_message.sender.arabic_name }}</p>
+            <p><strong>التاريخ:</strong> {{ original_message.sent_at|date:"d/m/Y H:i" }}</p>
+            <p><strong>الموضوع:</strong> {{ original_message.subject }}</p>
+            <hr>
+            <div class="message-body small">
+                {{ original_message.body|linebreaksbr }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}سجل الموافقات - نظام سير العمل{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">الرئيسية</a></li>
+<li class="breadcrumb-item active">سجل الموافقات</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-history me-2 text-primary"></i>
+                سجل الموافقات التي شاركت فيها
+            </h1>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">جميع الطلبات التي شاركت فيها</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العنوان</th>
+                            <th>النوع</th>
+                            <th>الحالة</th>
+                            <th>تاريخ الإنشاء</th>
+                            <th>دورك</th>
+                            <th>آخر إجراء</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td>{{ request.request_id|truncatechars:8 }}</td>
+                            <td>
+                                <a href="{% url 'workflows:request_detail' request.request_id %}">
+                                    {{ request.title }}
+                                </a>
+                            </td>
+                            <td>{{ request.get_workflow_type_display }}</td>
+                            <td>
+                                <span class="badge bg-{% if request.status == 'APPROVED' %}success{% elif request.status == 'REJECTED' %}danger{% elif request.status == 'PENDING' %}warning{% else %}secondary{% endif %}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ request.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if request.requester == user %}
+                                    <span class="badge bg-info">منشئ الطلب</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">موافق</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.my_step %}
+                                    {% if request.my_step.action %}
+                                        {{ request.my_step.get_action_display }} ({{ request.my_step.responded_at|date:"d/m/Y H:i" }})
+                                    {% else %}
+                                        - لم تتخذ إجراء بعد -
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'workflows:request_detail' request.request_id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">لا يوجد سجل موافقات لك حتى الآن.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

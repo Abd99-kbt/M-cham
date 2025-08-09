@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إضافة منصب جديد - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-plus"></i> إضافة منصب جديد</h4>
+        <a href="{% url 'accounts:positions' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> العودة للقائمة
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'accounts:add_position' %}">
+            {% csrf_token %}
+            
+            <div class="alert alert-info mb-4">
+                <i class="ph ph-info"></i> قم بإدخال بيانات المنصب الجديد ثم اضغط على زر "إضافة المنصب" في نهاية الصفحة.
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="title" class="form-label">المسمى الوظيفي <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="level" class="form-label">المستوى الوظيفي <span class="text-danger">*</span></label>
+                        <select class="form-select" id="level" name="level" required>
+                            <option value="" selected disabled>-- اختر المستوى الوظيفي --</option>
+                            <option value="1">موظف</option>
+                            <option value="2">مشرف</option>
+                            <option value="3">رئيس قسم</option>
+                            <option value="4">مدير</option>
+                            <option value="5">مدير عام</option>
+                            <option value="6">نائب المدير العام</option>
+                            <option value="7">المدير العام</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="department" class="form-label">القسم <span class="text-danger">*</span></label>
+                        <select class="form-select" id="department" name="department" required>
+                            <option value="" selected disabled>-- اختر القسم --</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}">{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="permissions_level" class="form-label">مستوى الصلاحيات <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="permissions_level" name="permissions_level" value="1" min="1" max="10" required>
+                        <small class="form-text text-muted">قيمة من 1 (أقل صلاحيات) إلى 10 (أعلى صلاحيات)</small>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="can_approve_messages" name="can_approve_messages">
+                        <label class="form-check-label" for="can_approve_messages">
+                            يمكن الموافقة على الرسائل
+                        </label>
+                    </div>
+                    
+                    <!-- حقل مخفي لمنع الأخطاء -->
+                    <input type="hidden" id="max_approval_amount" name="max_approval_amount" value="">
+
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="ph ph-plus-circle"></i> إضافة المنصب
+                </button>
+                <a href="{% url 'accounts:positions' %}" class="btn btn-outline-secondary">
+                    <i class="ph ph-x"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تفعيل Select2 لتحسين قوائم الاختيار
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('#department').select2({
+                placeholder: "اختر القسم",
+                allowClear: false
+            });
+            
+            $('#level').select2({
+                placeholder: "اختر المستوى الوظيفي",
+                allowClear: false
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار محرر النصوص</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- TinyMCE -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    
+    <style>
+        body {
+            font-family: 'Tajawal', Arial, sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .status-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">🧪 اختبار محرر النصوص الغني</h1>
+        
+        <!-- حالة التحميل -->
+        <div id="loading-status" class="status-box info">
+            <strong>⏳ جاري فحص TinyMCE...</strong>
+        </div>
+        
+        <div id="test-results"></div>
+        
+        <!-- منطقة الاختبار -->
+        <div class="mb-4">
+            <h3>اختبار المحرر</h3>
+            <textarea id="test-editor" placeholder="اكتب هنا لاختبار المحرر...">
+                <h2>مرحباً بك في محرر النصوص الغني!</h2>
+                <p>هذا نص تجريبي لاختبار المحرر. يمكنك:</p>
+                <ul>
+                    <li><strong>كتابة نص عريض</strong></li>
+                    <li><em>نص مائل</em></li>
+                    <li><u>نص مسطر</u></li>
+                </ul>
+                <blockquote>
+                    "هذا اقتباس تجريبي"
+                </blockquote>
+                <p style="color: #1e4a6b;">نص ملون باللون الأزرق</p>
+            </textarea>
+        </div>
+        
+        <!-- معلومات النظام -->
+        <div class="row">
+            <div class="col-md-6">
+                <h4>معلومات المتصفح</h4>
+                <p><strong>المتصفح:</strong> <span id="browser-info"></span></p>
+                <p><strong>حالة الصفحة:</strong> <span id="page-status"></span></p>
+            </div>
+            <div class="col-md-6">
+                <h4>حالة الاتصال</h4>
+                <p><strong>الاتصال بالإنترنت:</strong> <span id="connection-status">جاري الفحص...</span></p>
+                <p><strong>CDN TinyMCE:</strong> <span id="cdn-status">جاري الفحص...</span></p>
+            </div>
+        </div>
+        
+        <!-- أزرار الاختبار -->
+        <div class="text-center mt-4">
+            <button type="button" class="btn btn-primary" onclick="testBasicFeatures()">
+                اختبار الميزات الأساسية
+            </button>
+            <button type="button" class="btn btn-success" onclick="testArabicSupport()">
+                اختبار دعم العربية
+            </button>
+            <button type="button" class="btn btn-warning" onclick="reinitializeEditor()">
+                إعادة تهيئة المحرر
+            </button>
+            <button type="button" class="btn btn-info" onclick="generateReport()">
+                تقرير شامل
+            </button>
+        </div>
+        
+        <!-- نتائج الاختبار -->
+        <div id="test-output" class="mt-4"></div>
+    </div>
+
+    <script>
+        // معلومات أساسية
+        document.getElementById('browser-info').textContent = navigator.userAgent.split(') ')[0] + ')';
+        document.getElementById('page-status').textContent = document.readyState;
+        
+        // فحص TinyMCE
+        function checkTinyMCE() {
+            const loadingStatus = document.getElementById('loading-status');
+            const testResults = document.getElementById('test-results');
+            
+            if (typeof tinymce === 'undefined') {
+                loadingStatus.className = 'status-box error';
+                loadingStatus.innerHTML = '<strong>❌ خطأ:</strong> لم يتم تحميل TinyMCE. تحقق من الاتصال بالإنترنت.';
+                
+                testResults.innerHTML = `
+                    <div class="status-box error">
+                        <h4>مشكلة في التحميل</h4>
+                        <p>أسباب محتملة:</p>
+                        <ul>
+                            <li>انقطاع الاتصال بالإنترنت</li>
+                            <li>حجب CDN من قبل المتصفح أو الشركة</li>
+                            <li>مشكلة في إعدادات الأمان</li>
+                        </ul>
+                        <p><strong>الحل:</strong> تحقق من الاتصال وأعد تحميل الصفحة</p>
+                    </div>
+                `;
+                return false;
+            }
+            
+            loadingStatus.className = 'status-box success';
+            loadingStatus.innerHTML = '<strong>✅ نجح:</strong> تم تحميل TinyMCE بنجاح!';
+            
+            // تهيئة المحرر
+            initializeTestEditor();
+            return true;
+        }
+        
+        // تهيئة المحرر التجريبي
+        function initializeTestEditor() {
+            tinymce.init({
+                selector: '#test-editor',
+                language: 'ar',
+                directionality: 'rtl',
+                height: 300,
+                menubar: true,
+                
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
+                    'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'wordcount', 'emoticons', 'textcolor', 'colorpicker', 'directionality'
+                ],
+                
+                toolbar: [
+                    'formatselect fontselect fontsizeselect',
+                    'bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright | ltr rtl',
+                    'bullist numlist | link emoticons charmap | searchreplace code fullscreen preview'
+                ],
+                
+                font_family_formats: 'Tajawal=Tajawal, Arial, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times,serif;',
+                fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 36pt 48pt',
+                
+                content_style: `
+                    body { 
+                        font-family: 'Tajawal', Arial, sans-serif; 
+                        font-size: 14px; 
+                        direction: rtl; 
+                        text-align: right;
+                        line-height: 1.6;
+                        color: #333;
+                        padding: 15px;
+                    }
+                    h1, h2, h3, h4, h5, h6 { color: #1e4a6b; }
+                    ul, ol { padding-right: 20px; }
+                `,
+                
+                init_instance_callback: function(editor) {
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="status-box success">
+                            <h4>✅ المحرر جاهز!</h4>
+                            <p>تم تهيئة المحرر بنجاح. يمكنك الآن اختبار جميع الميزات.</p>
+                        </div>
+                    `;
+                },
+                
+                onerror: function(error) {
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="status-box error">
+                            <h4>❌ خطأ في التهيئة</h4>
+                            <p>تفاصيل الخطأ: ${error}</p>
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        // اختبار الميزات الأساسية
+        function testBasicFeatures() {
+            if (tinymce.get('test-editor')) {
+                const editor = tinymce.get('test-editor');
+                editor.setContent('<h3>اختبار الميزات الأساسية</h3><p><strong>نص عريض</strong> و <em>نص مائل</em> و <u>نص مسطر</u></p>');
+                showMessage('تم اختبار الميزات الأساسية', 'success');
+            }
+        }
+        
+        // اختبار دعم العربية
+        function testArabicSupport() {
+            if (tinymce.get('test-editor')) {
+                const editor = tinymce.get('test-editor');
+                editor.setContent('<h3>اختبار دعم اللغة العربية</h3><p>هذا نص عربي <strong>عريض</strong> ونص <em>مائل</em></p><ul><li>عنصر أول</li><li>عنصر ثاني</li></ul>');
+                showMessage('تم اختبار دعم العربية', 'success');
+            }
+        }
+        
+        // إعادة تهيئة المحرر
+        function reinitializeEditor() {
+            if (tinymce.get('test-editor')) {
+                tinymce.get('test-editor').remove();
+            }
+            setTimeout(initializeTestEditor, 100);
+            showMessage('تم إعادة تهيئة المحرر', 'info');
+        }
+        
+        // تقرير شامل
+        function generateReport() {
+            const report = {
+                tinymceLoaded: typeof tinymce !== 'undefined',
+                editorInstance: !!tinymce.get('test-editor'),
+                userAgent: navigator.userAgent,
+                url: window.location.href,
+                timestamp: new Date().toISOString()
+            };
+            
+            document.getElementById('test-output').innerHTML = `
+                <h4>📋 تقرير شامل</h4>
+                <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">
+${JSON.stringify(report, null, 2)}
+                </pre>
+            `;
+        }
+        
+        // إظهار رسالة
+        function showMessage(message, type) {
+            const output = document.getElementById('test-output');
+            output.innerHTML = `<div class="status-box ${type}">${message}</div>`;
+        }
+        
+        // فحص الاتصال
+        async function checkConnection() {
+            try {
+                const response = await fetch('https://cdn.tiny.cloud/1/favicon.ico', { mode: 'no-cors' });
+                document.getElementById('connection-status').innerHTML = '<span style="color: green;">✅ متصل</span>';
+                document.getElementById('cdn-status').innerHTML = '<span style="color: green;">✅ متاح</span>';
+            } catch (error) {
+                document.getElementById('connection-status').innerHTML = '<span style="color: red;">❌ منقطع</span>';
+                document.getElementById('cdn-status').innerHTML = '<span style="color: red;">❌ غير متاح</span>';
+            }
+        }
+        
+        // بدء الفحص عند تحميل الصفحة
+        window.addEventListener('load', function() {
+            setTimeout(checkTinyMCE, 500);
+            checkConnection();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1047 @@
+/* 
+=========================================
+   بنك الشام - الثيم العصري الجديد
+=========================================
+*/
+
+:root {
+    /* ألوان بنك الشام الأساسية */
+    --cham-primary: #a51c30;
+    --cham-primary-dark: #7a1423;
+    --cham-primary-light: rgba(165, 28, 48, 0.1);
+    --cham-secondary: #2c3e50;
+    
+    /* ألوان الخلفية */
+    --cham-bg-main: #f8f9fc;
+    --cham-bg-card: #ffffff;
+    --cham-bg-sidebar: #ffffff;
+    
+    /* ألوان النصوص */
+    --cham-text-primary: #2d3748;
+    --cham-text-secondary: #718096;
+    --cham-text-muted: #a0aec0;
+    
+    /* الظلال والحدود */
+    --cham-shadow-sm: 0 2px 8px rgba(165, 28, 48, 0.08);
+    --cham-shadow-md: 0 4px 16px rgba(165, 28, 48, 0.12);
+    --cham-shadow-lg: 0 8px 32px rgba(165, 28, 48, 0.16);
+    --cham-shadow-hover: 0 12px 40px rgba(165, 28, 48, 0.2);
+    
+    /* النصوص والخطوط */
+    --cham-font-family: 'Tajawal', 'Cairo', 'Rubik', -apple-system, BlinkMacSystemFont, sans-serif;
+    --cham-font-weight-normal: 400;
+    --cham-font-weight-medium: 500;
+    --cham-font-weight-semibold: 600;
+    --cham-font-weight-bold: 700;
+    
+    /* الانتقالات */
+    --cham-transition-fast: 0.15s ease;
+    --cham-transition-normal: 0.3s ease;
+    --cham-transition-slow: 0.5s ease;
+    
+    /* نصف القطر للحواف */
+    --cham-radius-sm: 0.5rem;
+    --cham-radius-md: 0.75rem;
+    --cham-radius-lg: 1rem;
+    --cham-radius-xl: 1.5rem;
+}
+
+/* ========================================= */
+/*           إعدادات عامة للصفحة            */
+/* ========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--cham-font-family);
+    background: var(--cham-bg-main);
+    color: var(--cham-text-primary);
+    line-height: 1.6;
+    font-weight: var(--cham-font-weight-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================= */
+/*              البطاقات والحاويات           */
+/* ========================================= */
+
+.modern-card {
+    background: var(--cham-bg-card);
+    border-radius: var(--cham-radius-lg);
+    box-shadow: var(--cham-shadow-sm);
+    border: 1px solid rgba(165, 28, 48, 0.06);
+    transition: all var(--cham-transition-normal);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.modern-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--cham-shadow-hover);
+    border-color: rgba(165, 28, 48, 0.12);
+}
+
+.modern-card-header {
+    background: linear-gradient(135deg, var(--cham-primary) 0%, var(--cham-primary-dark) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-bottom: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    animation: float 20s linear infinite;
+}
+
+.modern-card-body {
+    padding: 2rem;
+}
+
+.modern-card-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 2rem;
+}
+
+/* ========================================= */
+/*                  الأزرار                 */
+/* ========================================= */
+
+.modern-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: var(--cham-font-weight-semibold);
+    border-radius: var(--cham-radius-md);
+    border: 2px solid transparent;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--cham-transition-normal);
+    position: relative;
+    overflow: hidden;
+    font-family: var(--cham-font-family);
+    font-size: 0.95rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.modern-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.modern-btn:hover::before {
+    left: 100%;
+}
+
+.modern-btn:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.modern-btn:active {
+    transform: translateY(0);
+}
+
+/* أزرار أساسية */
+.modern-btn-primary {
+    background: linear-gradient(135deg, var(--cham-primary) 0%, var(--cham-primary-dark) 100%);
+    color: white;
+    box-shadow: var(--cham-shadow-sm);
+}
+
+.modern-btn-primary:hover {
+    background: linear-gradient(135deg, var(--cham-primary-dark) 0%, #5a0f1a 100%);
+    box-shadow: var(--cham-shadow-md);
+    color: white;
+}
+
+/* أزرار ثانوية */
+.modern-btn-secondary {
+    background: white;
+    color: var(--cham-primary);
+    border-color: var(--cham-primary);
+    box-shadow: var(--cham-shadow-sm);
+}
+
+.modern-btn-secondary:hover {
+    background: var(--cham-primary);
+    color: white;
+    box-shadow: var(--cham-shadow-md);
+}
+
+/* أزرار النجاح */
+.modern-btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: white;
+    box-shadow: var(--cham-shadow-sm);
+}
+
+.modern-btn-success:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    box-shadow: var(--cham-shadow-md);
+    color: white;
+}
+
+/* أزرار الخطر */
+.modern-btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: var(--cham-shadow-sm);
+}
+
+.modern-btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: var(--cham-shadow-md);
+    color: white;
+}
+
+/* أزرار التحذير */
+.modern-btn-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: var(--cham-shadow-sm);
+}
+
+.modern-btn-warning:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    box-shadow: var(--cham-shadow-md);
+    color: white;
+}
+
+/* أحجام الأزرار */
+.modern-btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+.modern-btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.modern-btn-xl {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.2rem;
+}
+
+/* ========================================= */
+/*               الحقول والنماذج            */
+/* ========================================= */
+
+.modern-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.modern-form-label {
+    display: block;
+    font-weight: var(--cham-font-weight-semibold);
+    color: var(--cham-text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.modern-form-control {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: var(--cham-radius-md);
+    background: white;
+    transition: all var(--cham-transition-normal);
+    font-family: var(--cham-font-family);
+}
+
+.modern-form-control:focus {
+    outline: none;
+    border-color: var(--cham-primary);
+    box-shadow: 0 0 0 3px rgba(165, 28, 48, 0.1);
+    transform: translateY(-1px);
+}
+
+.modern-form-control:hover {
+    border-color: rgba(165, 28, 48, 0.3);
+}
+
+.modern-form-control.is-invalid {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.modern-form-control.is-valid {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* ========================================= */
+/*                  الجداول                 */
+/* ========================================= */
+
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border-radius: var(--cham-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--cham-shadow-sm);
+}
+
+.modern-table thead th {
+    background: linear-gradient(135deg, var(--cham-primary) 0%, var(--cham-primary-dark) 100%);
+    color: white;
+    font-weight: var(--cham-font-weight-semibold);
+    padding: 1rem 1.5rem;
+    text-align: right;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.modern-table tbody td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    transition: background-color var(--cham-transition-fast);
+}
+
+.modern-table tbody tr:hover {
+    background: rgba(165, 28, 48, 0.02);
+}
+
+.modern-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ========================================= */
+/*                الشريط الجانبي            */
+/* ========================================= */
+
+.modern-sidebar {
+    background: var(--cham-bg-sidebar);
+    box-shadow: var(--cham-shadow-md);
+    border-right: 1px solid rgba(165, 28, 48, 0.06);
+    transition: all var(--cham-transition-normal);
+}
+
+.modern-sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    color: var(--cham-text-secondary);
+    text-decoration: none;
+    border-radius: var(--cham-radius-md);
+    margin: 0.25rem 0.5rem;
+    transition: all var(--cham-transition-normal);
+    font-weight: var(--cham-font-weight-medium);
+}
+
+.modern-sidebar .nav-link:hover {
+    background: var(--cham-primary-light);
+    color: var(--cham-primary);
+    transform: translateX(-2px);
+}
+
+.modern-sidebar .nav-link.active {
+    background: linear-gradient(135deg, var(--cham-primary) 0%, var(--cham-primary-dark) 100%);
+    color: white;
+    box-shadow: var(--cham-shadow-sm);
+}
+
+.modern-sidebar .nav-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* ========================================= */
+/*                رأس الصفحة               */
+/* ========================================= */
+
+.modern-header {
+    background: var(--cham-bg-card);
+    box-shadow: var(--cham-shadow-sm);
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(165, 28, 48, 0.06);
+}
+
+.modern-page-title {
+    font-size: 2rem;
+    font-weight: var(--cham-font-weight-bold);
+    color: var(--cham-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modern-page-subtitle {
+    color: var(--cham-text-secondary);
+    font-size: 1.1rem;
+    margin: 0.5rem 0 0 0;
+    font-weight: var(--cham-font-weight-normal);
+}
+
+/* ========================================= */
+/*                الإحصائيات               */
+/* ========================================= */
+
+.modern-stat-card {
+    background: var(--cham-bg-card);
+    border-radius: var(--cham-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--cham-shadow-sm);
+    border: 1px solid rgba(165, 28, 48, 0.06);
+    transition: all var(--cham-transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--cham-primary), var(--cham-primary-dark));
+}
+
+.modern-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--cham-shadow-md);
+}
+
+.modern-stat-number {
+    font-size: 2.5rem;
+    font-weight: var(--cham-font-weight-bold);
+    color: var(--cham-primary);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.modern-stat-label {
+    color: var(--cham-text-secondary);
+    font-weight: var(--cham-font-weight-medium);
+    font-size: 0.95rem;
+}
+
+.modern-stat-icon {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    font-size: 2rem;
+    color: rgba(165, 28, 48, 0.2);
+}
+
+/* ========================================= */
+/*                 الأنيميشن               */
+/* ========================================= */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+    0% { transform: translateX(0px); }
+    100% { transform: translateX(-60px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* كلاسات الأنيميشن */
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-fade-in-right {
+    animation: fadeInRight 0.6s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* تأخير الأنيميشن */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* ========================================= */
+/*              التصميم المتجاوب            */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .modern-card-body {
+        padding: 1.5rem;
+    }
+    
+    .modern-card-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .modern-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .modern-page-title {
+        font-size: 1.5rem;
+    }
+    
+    .modern-stat-number {
+        font-size: 2rem;
+    }
+    
+    .modern-table thead th,
+    .modern-table tbody td {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .modern-card-body {
+        padding: 1rem;
+    }
+    
+    .modern-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .modern-page-title {
+        font-size: 1.25rem;
+    }
+}
+
+/* ========================================= */
+/*                حالات خاصة               */
+/* ========================================= */
+
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--cham-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--cham-primary) 0%, var(--cham-primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* رسائل التنبيه العصرية */
+.modern-alert {
+    padding: 1rem 1.5rem;
+    border-radius: var(--cham-radius-md);
+    border: none;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: var(--cham-font-weight-medium);
+    animation: slideInRight 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+.modern-alert:hover::before {
+    left: 100%;
+}
+
+.modern-alert-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border-left: 4px solid #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.modern-alert-danger {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.modern-alert-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border-left: 4px solid #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.modern-alert-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border-left: 4px solid #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* ========================================= */
+/*            أنيميشن إضافية جديدة           */
+/* ========================================= */
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes flipInX {
+    from {
+        opacity: 0;
+        transform: perspective(400px) rotateX(-90deg);
+    }
+    40% {
+        transform: perspective(400px) rotateX(-20deg);
+    }
+    60% {
+        transform: perspective(400px) rotateX(10deg);
+    }
+    80% {
+        transform: perspective(400px) rotateX(-5deg);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(400px) rotateX(0deg);
+    }
+}
+
+@keyframes flipInY {
+    from {
+        opacity: 0;
+        transform: perspective(400px) rotateY(-90deg);
+    }
+    40% {
+        transform: perspective(400px) rotateY(-20deg);
+    }
+    60% {
+        transform: perspective(400px) rotateY(10deg);
+    }
+    80% {
+        transform: perspective(400px) rotateY(-5deg);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(400px) rotateY(0deg);
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+@keyframes swing {
+    20% { transform: rotate(15deg); }
+    40% { transform: rotate(-10deg); }
+    60% { transform: rotate(5deg); }
+    80% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes wobble {
+    0% { transform: translateX(0%); }
+    15% { transform: translateX(-25px) rotate(-5deg); }
+    30% { transform: translateX(20px) rotate(3deg); }
+    45% { transform: translateX(-15px) rotate(-3deg); }
+    60% { transform: translateX(10px) rotate(2deg); }
+    75% { transform: translateX(-5px) rotate(-1deg); }
+    100% { transform: translateX(0%); }
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.3); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.3); }
+    70% { transform: scale(1); }
+}
+
+/* فئات الأنيميشن الجديدة */
+.animate-slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-slide-in-down {
+    animation: slideInDown 0.6s ease-out;
+}
+
+.animate-slide-in-up {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.5s ease-out;
+}
+
+.animate-bounce-in {
+    animation: bounceIn 0.8s ease-out;
+}
+
+.animate-flip-in-x {
+    animation: flipInX 0.8s ease-out;
+}
+
+.animate-flip-in-y {
+    animation: flipInY 0.8s ease-out;
+}
+
+.animate-zoom-in {
+    animation: zoomIn 0.5s ease-out;
+}
+
+.animate-shake {
+    animation: shake 0.6s ease-in-out;
+}
+
+.animate-swing {
+    animation: swing 1s ease-in-out;
+}
+
+.animate-wobble {
+    animation: wobble 1s ease-in-out;
+}
+
+.animate-heartbeat {
+    animation: heartbeat 1s ease-in-out infinite;
+}
+
+/* ========================================= */
+/*            تأثيرات تفاعلية               */
+/* ========================================= */
+
+/* تأثير الموجة عند النقر */
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-effect::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.ripple-effect:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* تأثير الوهج */
+.glow-effect {
+    transition: all 0.3s ease;
+}
+
+.glow-effect:hover {
+    box-shadow: 0 0 20px rgba(165, 28, 48, 0.3);
+    transform: translateY(-2px);
+}
+
+/* تأثير الانزلاق */
+.slide-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.slide-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.slide-effect:hover::before {
+    left: 100%;
+}
+
+/* تأثير التدرج المتحرك */
+.gradient-animation {
+    background: linear-gradient(-45deg, var(--cham-primary), var(--cham-primary-dark), var(--cham-primary), var(--cham-primary-dark));
+    background-size: 400% 400%;
+    animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* تأثير التمايل */
+.float-effect {
+    animation: floatUp 3s ease-in-out infinite;
+}
+
+@keyframes floatUp {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* تأثير الدوران المستمر */
+.rotate-effect {
+    animation: rotate360 4s linear infinite;
+}
+
+@keyframes rotate360 {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================= */
+/*            حالات التحميل والانتظار        */
+/* ========================================= */
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(165, 28, 48, 0.1);
+    border-left-color: var(--cham-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-dots {
+    display: inline-block;
+}
+
+.loading-dots::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+}
+
+.loading-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(165, 28, 48, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loading-bar::before {
+    content: '';
+    display: block;
+    height: 100%;
+    background: var(--cham-primary);
+    border-radius: 2px;
+    animation: loadingProgress 2s ease-in-out infinite;
+}
+
+@keyframes loadingProgress {
+    0% { width: 0%; transform: translateX(-100%); }
+    50% { width: 100%; transform: translateX(0%); }
+    100% { width: 0%; transform: translateX(100%); }
+}
+
+/* ========================================= */
+/*            تأثيرات الإشعارات             */
+/* ========================================= */
+
+.notification-enter {
+    animation: slideInRight 0.3s ease-out;
+}
+
+.notification-exit {
+    animation: slideOutRight 0.3s ease-in;
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}
+
+.notification-bounce {
+    animation: bounceNotification 0.6s ease-out;
+}
+
+@keyframes bounceNotification {
+    0% { transform: scale(0.3) translateX(100px); }
+    50% { transform: scale(1.05) translateX(0); }
+    70% { transform: scale(0.9) translateX(0); }
+    100% { transform: scale(1) translateX(0); }
+}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}سجل نشاطات المستخدم - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-user"></i> سجل نشاطات: {{ profile_user.arabic_name }}</h4>
+        <a href="{% url 'accounts:admin_users' %}" class="btn btn-outline-secondary">
+            <i class="ph ph-arrow-left"></i> عودة لقائمة المستخدمين
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="mb-2"><strong>اسم المستخدم:</strong> {{ profile_user.username }}</div>
+                <div class="mb-2"><strong>القسم:</strong> {{ profile_user.department.name }}</div>
+                <div class="mb-2"><strong>المنصب:</strong> {{ profile_user.position.title }}</div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-2"><strong>آخر دخول:</strong> {% if last_login %}{{ last_login.login_time|date:"d/m/Y H:i" }}{% else %}-{% endif %}</div>
+                <div class="mb-2"><strong>آخر خروج:</strong> {% if last_logout %}{{ last_logout.last_activity|date:"d/m/Y H:i" }}{% else %}-{% endif %}</div>
+            </div>
+        </div>
+        <h5 class="mb-3"><i class="ph ph-list"></i> سجل العمليات الأخيرة</h5>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th>العملية</th>
+                    <th>الوصف</th>
+                    <th>الوقت</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.get_action_type_display }}</td>
+                    <td>{{ log.description }}</td>
+                    <td>{{ log.timestamp|date:"d/m/Y H:i" }}</td>
+                    <td>{{ log.user_ip }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">لا يوجد سجل عمليات.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

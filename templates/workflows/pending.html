@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الطلبات المعلقة - نظام سير العمل{% endblock %}
+
+{% block extra_css %}
+<style>
+.approval-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(165,28,48,0.08);
+}
+
+.approval-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(165,28,48,0.15);
+}
+
+.priority-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.action-buttons .btn {
+    margin: 0 0.2rem;
+    border-radius: 0.5rem;
+}
+
+.request-meta {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.request-title {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.request-title:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.workflow-type {
+    background: rgba(165, 28, 48, 0.1);
+    color: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.awaiting-section {
+    background: linear-gradient(135deg, #fff5f5, #fef2f2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(165, 28, 48, 0.1);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        margin: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="ph ph-clock-clockwise me-2 text-warning"></i>
+                        الطلبات المعلقة للموافقة
+                    </h1>
+                    <p class="text-muted mb-0">طلبات تنتظر موافقتك</p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                        <i class="ph ph-list-checks me-1"></i>
+                        {{ requests.count }} طلب معلق
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if requests %}
+        <!-- Pending Requests -->
+        <div class="row">
+            {% for request in requests %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card approval-card h-100">
+                    <div class="card-header bg-white border-bottom-0 pb-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="workflow-type">
+                                    {{ request.get_workflow_type_display }}
+                                </span>
+                            </div>
+                            <small class="text-muted">
+                                #{{ request.request_id|truncatechars:8 }}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">
+                            <a href="{% url 'workflows:request_detail' request.request_id %}" class="request-title">
+                                {{ request.title }}
+                            </a>
+                        </h6>
+                        
+                        {% if request.description %}
+                        <p class="card-text text-muted small mb-3">
+                            {{ request.description|truncatechars:120 }}
+                        </p>
+                        {% endif %}
+                        
+                        <!-- Request Info -->
+                        <div class="request-meta mb-3">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <i class="ph ph-user me-1"></i>
+                                    <small>{{ request.requester.arabic_name }}</small>
+                                </div>
+                                <div class="col-6">
+                                    <i class="ph ph-calendar me-1"></i>
+                                    <small>{{ request.created_at|date:"d/m/Y" }}</small>
+                                </div>
+                                <div class="col-6">
+                                    <i class="ph ph-building me-1"></i>
+                                    <small>{{ request.requester.department.name }}</small>
+                                </div>
+                                <div class="col-6">
+                                    <i class="ph ph-clock me-1"></i>
+                                    <small>{{ request.created_at|timesince }} مضت</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Priority indicator -->
+                        <div class="mb-3">
+                            {% if request.priority == 'HIGH' %}
+                                <span class="badge bg-danger priority-badge">
+                                    <i class="ph ph-warning me-1"></i>أولوية عالية
+                                </span>
+                            {% elif request.priority == 'MEDIUM' %}
+                                <span class="badge bg-warning priority-badge">
+                                    <i class="ph ph-minus me-1"></i>أولوية متوسطة
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success priority-badge">
+                                    <i class="ph ph-check me-1"></i>أولوية عادية
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-white border-top-0">
+                        <div class="action-buttons d-grid gap-2">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a href="{% url 'workflows:approve' request.request_id %}" 
+                                       class="btn btn-success btn-sm w-100"
+                                       onclick="return confirm('هل أنت متأكد من الموافقة على هذا الطلب؟')">
+                                        <i class="ph ph-check-circle me-1"></i>
+                                        موافقة
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{% url 'workflows:reject' request.request_id %}" 
+                                       class="btn btn-danger btn-sm w-100"
+                                       onclick="return confirm('هل أنت متأكد من رفض هذا الطلب؟')">
+                                        <i class="ph ph-x-circle me-1"></i>
+                                        رفض
+                                    </a>
+                                </div>
+                                <div class="col-12">
+                                    <a href="{% url 'workflows:request_detail' request.request_id %}" 
+                                       class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="ph ph-eye me-1"></i>
+                                        عرض التفاصيل
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Quick Actions Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="awaiting-section">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-2">
+                                <i class="ph ph-info me-2"></i>
+                                إجراءات سريعة
+                            </h6>
+                            <p class="text-muted mb-0 small">
+                                يمكنك استخدام هذه الإجراءات للتعامل مع عدة طلبات في نفس الوقت
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-success btn-sm" 
+                                        onclick="alert('ميزة الموافقة المجمعة قيد التطوير')">
+                                    <i class="ph ph-checks me-1"></i>
+                                    موافقة مجمعة
+                                </button>
+                                <a href="{% url 'workflows:history' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="ph ph-clock-counter-clockwise me-1"></i>
+                                    السجل
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <i class="ph ph-check-circle text-success"></i>
+                            <h5 class="mb-3">لا توجد طلبات معلقة</h5>
+                            <p class="mb-4">ممتاز! لا توجد طلبات تحتاج إلى موافقتك في الوقت الحالي.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'workflows:my_requests' %}" class="btn btn-outline-primary">
+                                    <i class="ph ph-file-text me-1"></i>
+                                    طلباتي
+                                </a>
+                                <a href="{% url 'workflows:history' %}" class="btn btn-outline-secondary">
+                                    <i class="ph ph-clock-counter-clockwise me-1"></i>
+                                    السجل
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تحديث تلقائي للصفحة كل 5 دقائق
+    setTimeout(function() {
+        location.reload();
+    }, 300000); // 5 minutes
+    
+    // تأثيرات hover للبطاقات
+    const cards = document.querySelectorAll('.approval-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // إضافة تأكيد إضافي للإجراءات الحساسة
+    const approveButtons = document.querySelectorAll('a[href*="approve"]');
+    const rejectButtons = document.querySelectorAll('a[href*="reject"]');
+    
+    approveButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('تأكيد الموافقة على الطلب؟\n\nهذا الإجراء لا يمكن التراجع عنه.')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    rejectButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('تأكيد رفض الطلب؟\n\nيرجى التأكد من السبب قبل الرفض.')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // إضافة مؤشر التحميل عند النقر على الأزرار
+    const actionButtons = document.querySelectorAll('.action-buttons .btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (this.href) {
+                this.innerHTML = '<i class="ph ph-spinner ph-spin me-1"></i>جاري المعالجة...';
+                this.style.pointerEvents = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

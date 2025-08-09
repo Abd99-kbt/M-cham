@@ -1,0 +1,357 @@
+/* نظام الرسائل المصرفية - ملف الأنماط الرئيسي - محسن للأداء */
+
+/* تحسين الأداء للرسوم المتحركة */
+* {
+    box-sizing: border-box;
+}
+
+/* تحسين تسريع الأجهزة للعناصر المتحركة */
+.card, .btn, .nav-link, .dropdown-menu {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* الخط العربي مع تحسين الأداء */
+body {
+    font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    direction: rtl;
+    text-align: right;
+    background-color: #f8f9fa;
+    font-display: swap; /* تحسين تحميل الخطوط */
+    text-rendering: optimizeSpeed; /* تحسين سرعة النص */
+}
+
+/* تحسين الهيدر */
+.navbar-brand {
+    font-size: 1.2rem;
+}
+
+.navbar-brand i {
+    color: #ffd700;
+}
+
+/* ألوان البنك */
+.bg-primary {
+    background-color: #1e3a8a !important;
+}
+
+.btn-primary {
+    background-color: #1e3a8a;
+    border-color: #1e3a8a;
+}
+
+.btn-primary:hover {
+    background-color: #1e40af;
+    border-color: #1e40af;
+}
+
+/* تحسين البطاقات */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    font-weight: 600;
+}
+
+/* تحسينات أداء إضافية */
+.lazy {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.lazy.loaded {
+    opacity: 1;
+}
+
+/* تأثير النبض للإشعارات */
+.pulse-animation {
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* تحسين تحميل الجداول الكبيرة */
+.table-container {
+    position: relative;
+    overflow-x: auto;
+    contain: layout style;
+}
+
+.table-loading {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* تحسين النماذج */
+.form-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.form-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* تحسين الانتقالات */
+.btn, .card, .nav-link {
+    transition: all 0.2s ease-in-out;
+}
+
+/* تحسين تحميل الصور */
+img {
+    image-rendering: auto;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* ألوان الأولوية */
+.priority-low {
+    color: #28a745;
+}
+
+.priority-normal {
+    color: #6c757d;
+}
+
+.priority-high {
+    color: #fd7e14;
+}
+
+.priority-urgent {
+    color: #dc3545;
+}
+
+.priority-critical {
+    color: #721c24;
+    font-weight: bold;
+}
+
+/* حالات الرسائل */
+.status-draft {
+    color: #6c757d;
+}
+
+.status-sent {
+    color: #007bff;
+}
+
+.status-received {
+    color: #28a745;
+}
+
+.status-read {
+    color: #17a2b8;
+}
+
+.status-archived {
+    color: #6f42c1;
+}
+
+/* مستويات السرية */
+.confidentiality-public {
+    color: #28a745;
+}
+
+.confidentiality-internal {
+    color: #ffc107;
+}
+
+.confidentiality-confidential {
+    color: #fd7e14;
+}
+
+.confidentiality-top-secret {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* تحسين الجداول */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: #e9ecef;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* الأيقونات */
+.icon-status {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+/* تحسين النماذج */
+.form-control:focus {
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+}
+
+.form-select:focus {
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+}
+
+/* محرر النص */
+.message-editor {
+    min-height: 300px;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+}
+
+/* الإشعارات */
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    padding: 0.25em 0.6em;
+    font-size: 0.75em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem;
+}
+
+/* لوحة التحكم */
+.dashboard-card {
+    transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card {
+    border-left: 4px solid #1e3a8a;
+}
+
+/* قائمة الرسائل */
+.message-item {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem;
+    transition: background-color 0.2s;
+}
+
+.message-item:hover {
+    background-color: #f8f9fa;
+}
+
+.message-item.unread {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.message-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* المرفقات */
+.attachment-item {
+    display: inline-block;
+    margin: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #e9ecef;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    color: #495057;
+    transition: background-color 0.2s;
+}
+
+.attachment-item:hover {
+    background-color: #dee2e6;
+    color: #495057;
+    text-decoration: none;
+}
+
+/* تحسين الاستجابة للموبايل */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+}
+
+/* رسوم متحركة */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* تحسين الطباعة */
+@media print {
+    .navbar, .btn, .pagination {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+}
+
+/* ألوان إضافية للنظام */
+.text-success { color: #28a745 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-info { color: #17a2b8 !important; }
+
+/* تحسين المساحات */
+.section-spacing {
+    margin: 2rem 0;
+}
+
+.content-spacing {
+    margin: 1rem 0;
+}

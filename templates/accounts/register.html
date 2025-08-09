@@ -1,0 +1,802 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تسجيل مستخدم جديد{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --bank-primary: #a51c30;
+    --bank-primary-dark: #7a1423;
+    --bank-bg: #f7f7f9;
+    --bank-white: #ffffff;
+    --bank-shadow: 0 4px 24px rgba(165,28,48,0.12);
+    --bank-shadow-hover: 0 8px 32px rgba(165,28,48,0.18);
+}
+
+.register-container {
+    min-height: 100vh;
+    background: var(--bank-bg);
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(165,28,48,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(165,28,48,0.06) 0%, transparent 50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+    font-family: 'Tajawal', 'Cairo', 'Rubik', sans-serif;
+}
+
+.register-card {
+    background: var(--bank-white);
+    border-radius: 1.5rem;
+    box-shadow: var(--bank-shadow);
+    overflow: hidden;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 1rem;
+    border: none;
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.register-header {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    color: white;
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.register-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    animation: float 20s linear infinite;
+}
+
+@keyframes float {
+    0% { transform: translateX(0px); }
+    100% { transform: translateX(-60px); }
+}
+
+.bank-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.register-header h2 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2.2rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 1;
+}
+
+.register-header p {
+    margin: 0.8rem 0 0 0;
+    opacity: 0.95;
+    font-size: 1.1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.register-form {
+    padding: 3rem 2.5rem;
+    background: var(--bank-white);
+}
+
+.form-group {
+    margin-bottom: 1.8rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--bank-primary);
+    margin-bottom: 0.7rem;
+    display: block;
+    font-size: 1rem;
+}
+
+.form-label i {
+    color: var(--bank-primary);
+    margin-left: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    padding: 0.9rem 1.2rem;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--bank-primary);
+    box-shadow: 0 0 0 4px rgba(165, 28, 48, 0.1);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.form-control.is-valid, .form-select.is-valid {
+    border-color: #28a745;
+    background-image: none;
+}
+
+.form-control.is-invalid, .form-select.is-invalid {
+    border-color: #dc3545;
+    background-image: none;
+}
+
+.form-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.4rem;
+}
+
+.password-requirements {
+    background: rgba(165, 28, 48, 0.05);
+    border: 1px solid rgba(165, 28, 48, 0.1);
+    border-radius: 1rem;
+    padding: 1.2rem;
+    margin-top: 0.7rem;
+}
+
+.password-requirements ul {
+    margin: 0;
+    padding-right: 1.5rem;
+}
+
+.password-requirements li {
+    color: var(--bank-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+}
+
+.btn-register {
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-primary-dark) 100%);
+    border: none;
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 2rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    font-family: 'Tajawal', sans-serif;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-register::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-register:hover::before {
+    left: 100%;
+}
+
+.btn-register:hover {
+    background: linear-gradient(135deg, var(--bank-primary-dark) 0%, #5a0f1a 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--bank-shadow-hover);
+}
+
+.btn-register:active {
+    transform: translateY(0);
+}
+
+.btn-register:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.form-check {
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid var(--bank-primary);
+    border-radius: 0.3rem;
+}
+
+.form-check-input:checked {
+    background-color: var(--bank-primary);
+    border-color: var(--bank-primary);
+}
+
+.form-check-label {
+    font-size: 1rem;
+    color: #495057;
+    cursor: pointer;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f1f3f4;
+}
+
+.login-link a {
+    color: var(--bank-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    display: inline-block;
+}
+
+.login-link a:hover {
+    background: rgba(165, 28, 48, 0.1);
+    transform: translateY(-1px);
+}
+
+.row-cols-md-2 > .col {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+}
+
+.loading-spinner {
+    display: none;
+}
+
+.loading .loading-spinner {
+    display: inline-block !important;
+}
+
+.loading .btn-text {
+    display: none !important;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
+    font-weight: 500;
+}
+
+.success-message {
+    color: #28a745;
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
+    font-weight: 500;
+}
+
+/* تأثيرات إضافية للبطاقات */
+.form-group {
+    animation: slideInRight 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: both;
+}
+
+.form-group:nth-child(odd) {
+    animation-delay: 0.1s;
+}
+
+.form-group:nth-child(even) {
+    animation-delay: 0.2s;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* تحسين المظهر للهواتف المحمولة */
+@media (max-width: 768px) {
+    .register-container {
+        padding: 1rem 0;
+    }
+    
+    .register-form {
+        padding: 2rem 1.5rem;
+    }
+    
+    .register-header {
+        padding: 2rem 1.5rem 1.5rem;
+    }
+    
+    .register-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .bank-logo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .row-cols-md-2 > .col {
+        padding-right: 0;
+        padding-left: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .form-group {
+        animation: none;
+    }
+}
+
+/* تحسينات إضافية للإمكانية */
+.form-control:focus,
+.form-select:focus {
+    outline: 2px solid var(--bank-primary);
+    outline-offset: 2px;
+}
+
+.btn-register:focus {
+    outline: 2px solid var(--bank-primary);
+    outline-offset: 2px;
+}
+
+/* أنيميشن دوران للـ spinner */
+.ph-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* تحسينات إضافية للأيقونات */
+.ph {
+    font-size: 1.2em;
+    vertical-align: middle;
+}
+
+/* تأثيرات hover للحقول */
+.form-control:hover,
+.form-select:hover {
+    border-color: rgba(165, 28, 48, 0.3);
+    transition: border-color 0.3s ease;
+}
+
+/* تحسين مظهر الـ placeholder */
+.form-control::placeholder {
+    color: #adb5bd;
+    opacity: 1;
+}
+
+/* تحسين رسائل الخطأ */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.error-message::before {
+    content: "⚠";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* تحسين رسائل النجاح */
+.success-message::before {
+    content: "✓";
+    color: #28a745;
+    font-weight: bold;
+}
+
+/* تحسين الظلال والتأثيرات */
+.register-card:hover {
+    box-shadow: var(--bank-shadow-hover);
+    transition: box-shadow 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-card">
+        <!-- Header -->
+        <div class="register-header">
+            <img src="{% static 'images/logo-cham.jpg' %}" alt="شعار بنك الشام" class="bank-logo">
+            <h2>تسجيل مستخدم جديد</h2>
+            <p>إنشاء حساب جديد في نظام بنك الشام</p>
+        </div>
+
+        <!-- Form -->
+        <div class="register-form">
+            <form method="post" id="registerForm" novalidate>
+                {% csrf_token %}
+                
+                <!-- الحقول الأساسية -->
+                <div class="row row-cols-1 row-cols-md-2">
+                    <!-- اسم المستخدم -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                <i class="ph ph-user"></i>{{ form.username.label }}
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.help_text %}
+                                <div class="form-text">{{ form.username.help_text }}</div>
+                            {% endif %}
+                            {% if form.username.errors %}
+                                <div class="error-message">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- البريد الإلكتروني -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="ph ph-envelope"></i>{{ form.email.label }}
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="error-message">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- الاسم بالعربية -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.arabic_name.id_for_label }}" class="form-label">
+                                <i class="ph ph-signature"></i>{{ form.arabic_name.label }}
+                            </label>
+                            {{ form.arabic_name }}
+                            {% if form.arabic_name.errors %}
+                                <div class="error-message">{{ form.arabic_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- رقم الموظف -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.employee_id.id_for_label }}" class="form-label">
+                                <i class="ph ph-identification-badge"></i>{{ form.employee_id.label }}
+                            </label>
+                            {{ form.employee_id }}
+                            {% if form.employee_id.errors %}
+                                <div class="error-message">{{ form.employee_id.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- رقم الهاتف -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                <i class="ph ph-phone"></i>{{ form.phone.label }}
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="error-message">{{ form.phone.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- القسم -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.department.id_for_label }}" class="form-label">
+                                <i class="ph ph-buildings"></i>{{ form.department.label }}
+                            </label>
+                            {{ form.department }}
+                            {% if form.department.errors %}
+                                <div class="error-message">{{ form.department.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- المنصب -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.position.id_for_label }}" class="form-label">
+                                <i class="ph ph-briefcase"></i>{{ form.position.label }}
+                            </label>
+                            {{ form.position }}
+                            {% if form.position.errors %}
+                                <div class="error-message">{{ form.position.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- المدير المباشر -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.direct_manager.id_for_label }}" class="form-label">
+                                <i class="ph ph-user-gear"></i>{{ form.direct_manager.label }}
+                            </label>
+                            {{ form.direct_manager }}
+                            {% if form.direct_manager.errors %}
+                                <div class="error-message">{{ form.direct_manager.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- كلمات المرور -->
+                <div class="row row-cols-1 row-cols-md-2">
+                    <!-- كلمة المرور -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                <i class="ph ph-lock"></i>{{ form.password1.label }}
+                            </label>
+                            {{ form.password1 }}
+                            {% if form.password1.help_text %}
+                                <div class="password-requirements">
+                                    <small class="text-muted">متطلبات كلمة المرور:</small>
+                                    <ul>
+                                        <li>8 خانات على الأقل</li>
+                                        <li>يجب أن تحتوي على أحرف إنجليزية</li>
+                                        <li>يجب أن تحتوي على أرقام</li>
+                                        <li>لا تحتوي على مسافات</li>
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            {% if form.password1.errors %}
+                                <div class="error-message">{{ form.password1.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- تأكيد كلمة المرور -->
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                <i class="ph ph-lock-key"></i>{{ form.password2.label }}
+                            </label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="error-message">{{ form.password2.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- موافقة على الشروط -->
+                <div class="form-check">
+                    {{ form.terms_accepted }}
+                    <label class="form-check-label" for="{{ form.terms_accepted.id_for_label }}">
+                        {{ form.terms_accepted.label }}
+                    </label>
+                    {% if form.terms_accepted.errors %}
+                        <div class="error-message">{{ form.terms_accepted.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- زر التسجيل -->
+                <button type="button" class="btn btn-register" id="submitBtn">
+                    <span class="btn-text">
+                        <i class="ph ph-user-plus"></i>تسجيل الحساب
+                    </span>
+                    <span class="loading-spinner" style="display: none;">
+                        <i class="ph ph-spinner"></i>جاري التسجيل...
+                    </span>
+                </button>
+
+                <!-- رابط تسجيل الدخول -->
+                <div class="login-link">
+                    <p class="mb-0">لديك حساب بالفعل؟ <a href="{% url 'accounts:login' %}">سجل الدخول من هنا</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const departmentField = document.getElementById('{{ form.department.id_for_label }}');
+    const positionField = document.getElementById('{{ form.position.id_for_label }}');
+    
+    console.log('تم تحميل صفحة التسجيل');
+    console.log('النموذج:', form);
+    console.log('زر التسجيل:', submitBtn);
+    
+    // معالجة تغيير القسم لتحديث المناصب
+    departmentField.addEventListener('change', function() {
+        const departmentId = this.value;
+        
+        if (departmentId) {
+            fetch(`/accounts/get-positions-by-department/?department_id=${departmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // مسح الخيارات الحالية
+                    positionField.innerHTML = '<option value="">اختر المنصب</option>';
+                    
+                    // إضافة المناصب الجديدة
+                    data.positions.forEach(position => {
+                        const option = document.createElement('option');
+                        option.value = position.id;
+                        option.textContent = `${position.title} (${position.level})`;
+                        positionField.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching positions:', error);
+                });
+        } else {
+            positionField.innerHTML = '<option value="">اختر القسم أولاً</option>';
+        }
+    });
+    
+    // معالجة إرسال النموذج
+    let isSubmitting = false; // منع الإرسال المتكرر
+    
+    // معالجة النقر على زر التسجيل
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault(); // منع الإرسال الافتراضي
+        
+        // منع النقرات المتكررة
+        if (isSubmitting || submitBtn.disabled) {
+            console.log('تم تجاهل النقرة - النموذج قيد المعالجة');
+            return false;
+        }
+        
+        console.log('تم الضغط على زر التسجيل');
+        
+        // التحقق من الحقول المطلوبة
+        const requiredFields = ['username', 'email', 'arabic_name', 'employee_id', 'phone', 'department', 'position', 'password1', 'password2'];
+        let hasErrors = false;
+        
+        requiredFields.forEach(fieldName => {
+            const field = form.querySelector(`[name="${fieldName}"]`);
+            if (field && !field.value.trim()) {
+                hasErrors = true;
+                field.classList.add('is-invalid');
+                console.log(`حقل ${fieldName} مطلوب`);
+            }
+        });
+        
+        // التحقق من موافقة الشروط
+        const termsField = form.querySelector('[name="terms_accepted"]');
+        if (termsField && !termsField.checked) {
+            hasErrors = true;
+            console.log('يجب الموافقة على الشروط والأحكام');
+            alert('يجب الموافقة على شروط الاستخدام وسياسة الخصوصية');
+        }
+        
+        if (hasErrors) {
+            console.log('تم منع إرسال النموذج بسبب أخطاء في التحقق');
+            return false;
+        }
+        
+        // تعيين حالة الإرسال
+        isSubmitting = true;
+        
+        // إظهار حالة التحميل
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        
+        // إضافة timeout لإعادة تمكين الزر في حالة عدم نجاح الإرسال
+        setTimeout(() => {
+            isSubmitting = false;
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+            console.log('تم إعادة تمكين زر التسجيل بعد انتهاء المهلة الزمنية');
+        }, 30000);
+        
+        console.log('تم إرسال النموذج إلى الخادم');
+        
+        // إرسال النموذج يدوياً
+        form.submit();
+    });
+    
+    // التحقق من كلمة المرور في الوقت الفعلي
+    const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+    
+    function validatePassword() {
+        const password = password1.value;
+        const confirmPassword = password2.value;
+        
+        // فحص كلمة المرور
+        const hasMinLength = password.length >= 8;
+        const hasLetters = /[a-zA-Z]/.test(password);
+        const hasNumbers = /\d/.test(password);
+        const noSpaces = !/\s/.test(password);
+        
+        // تحديث مظهر الحقل
+        if (password && (hasMinLength && hasLetters && hasNumbers && noSpaces)) {
+            password1.classList.remove('is-invalid');
+            password1.classList.add('is-valid');
+        } else if (password) {
+            password1.classList.remove('is-valid');
+            password1.classList.add('is-invalid');
+        }
+        
+        // فحص تطابق كلمة المرور
+        if (confirmPassword && password === confirmPassword) {
+            password2.classList.remove('is-invalid');
+            password2.classList.add('is-valid');
+        } else if (confirmPassword) {
+            password2.classList.remove('is-valid');
+            password2.classList.add('is-invalid');
+        }
+    }
+    
+    password1.addEventListener('input', validatePassword);
+    password2.addEventListener('input', validatePassword);
+    
+    // التحقق من اسم المستخدم
+    const usernameField = document.getElementById('{{ form.username.id_for_label }}');
+    usernameField.addEventListener('input', function() {
+        const username = this.value;
+        const isValid = /^[a-zA-Z0-9_]+$/.test(username);
+        
+        if (username && isValid) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else if (username) {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        }
+    });
+    
+    // التحقق من البريد الإلكتروني
+    const emailField = document.getElementById('{{ form.email.id_for_label }}');
+    emailField.addEventListener('input', function() {
+        const email = this.value;
+        const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        
+        if (email && isValid) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else if (email) {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        }
+    });
+});
+</script>
+{% endblock %}

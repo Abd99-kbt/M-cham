@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إدارة المناصب - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-id-badge"></i> إدارة المناصب</h4>
+        <a href="{% url 'accounts:add_position' %}" class="btn btn-primary">
+            <i class="ph ph-plus"></i> إضافة منصب
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- مربع الشرح -->
+        <div class="alert alert-info mb-3">
+            <h5 class="alert-heading"><i class="ph ph-info"></i> دليل الإجراءات المتاحة</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <button class="btn btn-sm btn-outline-primary me-1"><i class="ph ph-pencil"></i></button>
+                            <span>تعديل بيانات المنصب</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <button class="btn btn-sm btn-outline-danger me-1"><i class="ph ph-trash"></i></button>
+                            <span>حذف المنصب من النظام</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>المنصب</th>
+                    <th>القسم</th>
+                    <th>الوصف</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position in positions %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ position.title }}</td>
+                    <td>{{ position.department.name }}</td>
+                    <td>{{ position.description|default:"-" }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'accounts:edit_position' position.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="تعديل بيانات المنصب">
+                                <i class="ph ph-pencil"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="حذف المنصب من النظام" onclick="return confirm('هل أنت متأكد من حذف هذا المنصب؟');">
+                                <i class="ph ph-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">لا توجد مناصب.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تفعيل tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

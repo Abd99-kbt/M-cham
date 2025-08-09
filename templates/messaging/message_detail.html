@@ -1,0 +1,850 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ message.subject }} - نظام المراسلات الداخلية{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item"><a href="{% url 'messaging:inbox' %}">الرسائل</a></li>
+<li class="breadcrumb-item active">عرض الرسالة</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.message-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+.message-body {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    direction: rtl;
+    text-align: right;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+/* تنسيق HTML داخل الرسالة */
+.message-body h1, .message-body h2, .message-body h3, 
+.message-body h4, .message-body h5, .message-body h6 {
+    color: #1e4a6b;
+    margin-bottom: 0.5em;
+    margin-top: 1em;
+}
+
+.message-body p {
+    margin-bottom: 1em;
+}
+
+.message-body ul, .message-body ol {
+    padding-right: 20px;
+    margin-bottom: 1em;
+}
+
+.message-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+.message-body table td, .message-body table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: right;
+}
+
+.message-body table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.message-body blockquote {
+    border-right: 4px solid #1e4a6b;
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    background: #f8f9fa;
+    font-style: italic;
+}
+
+.message-body code {
+    background: #f4f4f4;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.message-body pre {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.message-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 0.5em 0;
+}
+
+.message-body .text-primary { color: #1e4a6b !important; }
+.message-body .text-warning { color: #f0ad4e !important; }
+.message-body .text-danger { color: #d9534f !important; }
+.message-body .text-success { color: #5cb85c !important; }
+.attachment-item {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin: 0.25rem;
+    transition: background-color 0.2s;
+}
+.attachment-item:hover {
+    background-color: #e9ecef;
+}
+.message-meta {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+.meta-label {
+    font-weight: 600;
+}
+.priority-badge {
+    font-size: 0.8rem;
+    padding: 0.4em 0.8em;
+}
+
+/* تنسيق التوقيعات الرقمية */
+.qr-small {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 5px;
+    background: white;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.qr-small:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.card.border-success {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.25);
+}
+
+.card.border-success .card-header {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-bottom-color: #28a745;
+}
+
+.btn-group-sm .btn {
+    margin: 0 2px;
+    font-size: 0.75rem;
+}
+
+.signature-card {
+    transition: transform 0.2s ease;
+}
+
+.signature-card:hover {
+    transform: translateY(-2px);
+}
+
+/* تحسينات للطباعة */
+@media print {
+    /* إخفاء العناصر غير المطلوبة في الطباعة */
+    .btn, .modal, .btn-group, .btn-group-sm, .dropdown, .dropdown-menu {
+        display: none !important;
+    }
+    
+    /* تأكيد ظهور محتوى الرسالة */
+    .message-body, .message-body * {
+        visibility: visible !important;
+        display: block !important;
+        color: #000 !important;
+        background: white !important;
+    }
+    
+    /* عناصر inline */
+    .message-body span, .message-body strong, .message-body em, 
+    .message-body a, .message-body code, .message-body small {
+        display: inline !important;
+    }
+    
+    /* الجداول */
+    .message-body table {
+        display: table !important;
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+    
+    .message-body tr {
+        display: table-row !important;
+    }
+    
+    .message-body td, .message-body th {
+        display: table-cell !important;
+        border: 1px solid #000 !important;
+        padding: 8px !important;
+    }
+    
+    /* القوائم */
+    .message-body ul, .message-body ol {
+        display: block !important;
+        padding-right: 20px !important;
+    }
+    
+    .message-body li {
+        display: list-item !important;
+    }
+    
+    /* التوقيعات الرقمية - عرض منسق للطباعة */
+    .signature-card .btn-group-sm {
+        display: none !important;
+    }
+    
+    .signature-card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        margin-bottom: 15px !important;
+        page-break-inside: avoid;
+        background: white !important;
+    }
+    
+    .signature-card .card-header {
+        background: #f8f9fa !important;
+        border-bottom: 1px solid #000 !important;
+        padding: 8px !important;
+    }
+    
+    .signature-card .card-body {
+        padding: 12px !important;
+    }
+    
+    /* عرض QR Code منسق للطباعة */
+    .qr-small {
+        max-width: 60px !important;
+        max-height: 60px !important;
+        border: 1px solid #000 !important;
+        padding: 2px !important;
+        background: white !important;
+        display: inline-block !important;
+        margin: 5px 0 !important;
+    }
+    
+    /* تنسيق خاص للتوقيعات في الطباعة */
+    .digital-signature-print {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 15px !important;
+        direction: rtl !important;
+    }
+    
+    .signature-info-print {
+        flex: 1 !important;
+        text-align: right !important;
+    }
+    
+    .signature-qr-print {
+        flex-shrink: 0 !important;
+        text-align: center !important;
+    }
+    
+    .signature-qr-print .qr-small {
+        margin: 0 !important;
+    }
+    
+    /* تحسين المظهر العام */
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .message-header {
+        border-bottom: 2px solid #000 !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .message-body {
+        border: 1px solid #000 !important;
+        padding: 15px !important;
+        page-break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<!-- Header للطباعة فقط -->
+<div class="print-header d-none d-print-block">
+    <div class="bank-logos">
+        <div class="logo-left">
+            <!-- يمكن إضافة شعارات إضافية هنا -->
+        </div>
+        <div class="logo-center">
+            <img src="{% static 'images/logo-cham.jpg' %}" alt="بنك الشام" class="logo-right">
+        </div>
+        <div class="logo-right">
+            <!-- مساحة للشعارات الإضافية -->
+        </div>
+    </div>
+    <div class="bank-info">
+        <div class="bank-name-ar">بنك الشام</div>
+        <div class="bank-name-en">CHAM BANK</div>
+    </div>
+    <div class="document-number">
+        رقم الوثيقة: {{ message.sequence_number }}
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <!-- Message Header -->
+            <div class="message-header">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 class="mb-1">{{ message.subject }}</h2>
+                        <div class="message-meta">
+                            <span class="me-3">
+                                <i class="fas fa-user me-1"></i>
+                                <strong>من:</strong> {{ message.sender.arabic_name }} ({{ message.sender.department.name }})
+                            </span>
+                            <span class="me-3">
+                                <i class="fas fa-clock me-1"></i>
+                                <strong>التاريخ:</strong> {{ message.sent_at|date:"d/m/Y H:i" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <!-- Action Buttons -->
+                        <a href="{% url 'messaging:reply' message.message_id %}" class="btn btn-primary">
+                            <i class="fas fa-reply me-1"></i> رد
+                        </a>
+                        <a href="{% url 'messaging:forward' message.message_id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-share me-1"></i> تحويل
+                        </a>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="#" id="print-message-btn">
+                                        <i class="fas fa-print me-2"></i> طباعة
+                                    </a>
+                                </li>
+                                {% if not message.archived_at %}
+                                <li>
+                                    <button class="dropdown-item archive-message-btn" 
+                                            data-message-id="{{ message.message_id }}"
+                                            type="button">
+                                        <i class="fas fa-archive me-2"></i> أرشفة
+                                    </button>
+                                </li>
+                                {% else %}
+                                <li>
+                                    <button class="dropdown-item unarchive-message-btn" 
+                                            data-message-id="{{ message.message_id }}"
+                                            type="button">
+                                        <i class="fas fa-undo me-2"></i> استعادة من الأرشيف
+                                    </button>
+                                </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'messaging:delete' message.message_id %}">
+                                        <i class="fas fa-trash me-2"></i> حذف
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recipients & Meta -->
+                <div class="message-meta row">
+                    <div class="col-md-6">
+                        <p class="mb-1">
+                            <span class="meta-label">إلى:</span>
+                            {% for recipient in message.recipients.all %}
+                                {{ recipient.arabic_name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <span class="badge priority-badge bg-{{ message.priority|lower }} me-2">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            {{ message.get_priority_display }}
+                        </span>
+                        <span class="badge priority-badge bg-secondary">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            {{ message.get_confidentiality_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Message Body -->
+            <div class="message-body mt-4">
+                                            {{ message.body|safe }}
+            </div>
+
+            <!-- Attachments -->
+            {% if message.attachments.exists %}
+            <div class="mt-5">
+                <h5 class="mb-3">
+                    <i class="fas fa-paperclip me-2"></i>
+                    المرفقات ({{ message.attachments.count }})
+                </h5>
+                <div>
+                    {% for attachment in message.attachments.all %}
+                    <a href="{% url 'messaging:download_attachment' attachment.id %}" class="attachment-item">
+                        <i class="fas fa-file-download me-2"></i>
+                        {{ attachment.original_filename }}
+                        <small class="text-muted ms-2">({{ attachment.file_size|filesizeformat }})</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Digital Signatures -->
+            {% if message.digital_signatures.exists %}
+            <div class="mt-5">
+                <h5 class="mb-3">
+                    <i class="fas fa-shield-alt me-2 text-success"></i>
+                    التوقيعات الرقمية ({{ message.digital_signatures.count }})
+                </h5>
+                <div class="row">
+                    {% for signature in message.digital_signatures.all %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-success">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-user-shield me-2"></i>
+                                        {{ signature.signer.arabic_name }}
+                                    </h6>
+                                    <span class="badge bg-{{ signature.verification_status|default:'success' }}">
+                                        {{ signature.get_verification_status_display|default:'صالح' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- تنسيق منسق للطباعة -->
+                                <div class="digital-signature-print">
+                                    <!-- معلومات التوقيع -->
+                                    <div class="signature-info-print">
+                                        <div class="row mb-3">
+                                            <div class="col-6">
+                                                <small class="text-muted">النوع:</small>
+                                                <div class="fw-bold">{{ signature.get_signature_type_display }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">التاريخ:</small>
+                                                <div class="fw-bold">{{ signature.signed_at|date:"d/m/Y H:i" }}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if signature.reason %}
+                                        <div class="mb-3">
+                                            <small class="text-muted">السبب:</small>
+                                            <div class="small">{{ signature.reason }}</div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- الأزرار للشاشة فقط -->
+                                        <div class="btn-group-sm d-print-none" role="group">
+                                            <a href="{% url 'messaging:verify_signature' signature.signature_id %}" 
+                                               class="btn btn-outline-success btn-sm" 
+                                               target="_blank">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                التحقق
+                                            </a>
+                                            {% if signature.qr_code %}
+                                            <button type="button" 
+                                                    class="btn btn-outline-primary btn-sm"
+                                                    onclick="showQRModal('{{ signature.signature_id }}', '{{ signature.signer.arabic_name }}')">
+                                                <i class="fas fa-qrcode me-1"></i>
+                                                QR
+                                            </button>
+                                            {% endif %}
+                                            <a href="{% url 'messaging:signature_certificate' signature.signature_id %}" 
+                                               class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-certificate me-1"></i>
+                                                الشهادة
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- QR Code للطباعة -->
+                                    {% if signature.qr_code %}
+                                    <div class="signature-qr-print">
+                                        <div class="text-center">
+                                            <img src="{% url 'messaging:signature_qr' signature.signature_id %}" 
+                                                 alt="QR Code للتوقيع الرقمي"
+                                                 class="qr-small"
+                                                 style="max-width: 120px; cursor: pointer;"
+                                                 onclick="showQRModal('{{ signature.signature_id }}', '{{ signature.signer.arabic_name }}')">
+                                            <!-- معلومات إضافية للطباعة فقط -->
+                                            <div class="d-none d-print-block mt-2" style="font-size: 8pt; color: #333;">
+                                                <div>معرف التوقيع:</div>
+                                                <div style="font-size: 7pt; word-break: break-all;">{{ signature.signature_id }}</div>
+                                                <div class="mt-1">{{ signature.signed_at|date:"d/m/Y H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reply/Forward History -->
+            {% if message.reply_to or message.forwarded_from %}
+            <div class="mt-5">
+                <hr>
+                <div class="accordion" id="historyAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#messageHistory">
+                                {% if message.reply_to %}
+                                رد على رسالة: "{{ message.reply_to.subject }}"
+                                {% else %}
+                                رسالة محولة من: "{{ message.forwarded_from.subject }}"
+                                {% endif %}
+                            </button>
+                        </h2>
+                        <div id="messageHistory" class="accordion-collapse collapse">
+                            <div class="accordion-body bg-light">
+                                {% with original_message=message.reply_to|default:message.forwarded_from %}
+                                <p><strong>من:</strong> {{ original_message.sender.arabic_name }}</p>
+                                <p><strong>التاريخ:</strong> {{ original_message.sent_at|date:"d/m/Y H:i" }}</p>
+                                <p><strong>الموضوع:</strong> {{ original_message.subject }}</p>
+                                <hr>
+                                <div class="message-body small">
+                                    {{ original_message.body|safe }}
+                                </div>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-qrcode me-2"></i>
+                    رمز QR للتوقيع الرقمي
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrModalContent">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">جاري التحميل...</span>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">امسح الرمز باستخدام كاميرا الهاتف للتحقق من التوقيع</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <a href="#" id="qrDownloadBtn" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-download me-2"></i>
+                    تحميل الصورة
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer للطباعة فقط -->
+<div class="print-footer d-none d-print-block">
+    <div class="footer-content">
+        <div class="footer-right">
+            <div class="contact-info">
+                <span class="contact-label">العنوان:</span>
+                دمشق أبورمانة ساحة النجمة
+            </div>
+            <div class="contact-info">
+                <span class="contact-label">ص.ب:</span>
+                8390 دمشق - سوريا
+            </div>
+            <div class="contact-info">
+                <span class="contact-label">هاتف:</span>
+                +963-11-3348731
+            </div>
+            <div class="contact-info">
+                <span class="contact-label">فاكس:</span>
+                +963-11-3348732
+            </div>
+        </div>
+        <div class="footer-left">
+            <div class="contact-info">
+                <span class="contact-label">Head Office:</span>
+                Damascus - Abu Rummaneh - Najma Square
+            </div>
+            <div class="contact-info">
+                <span class="contact-label">P.O Box:</span>
+                8390 Damascus - Syria
+            </div>
+            <div class="contact-info">
+                <span class="contact-label">Tel:</span>
+                +963-11-3348731
+            </div>
+            <div class="contact-info">
+                <span class="contact-label">Website:</span>
+                www.chambank.sy
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 10px;">
+        <img src="{% static 'images/logo-cham.jpg' %}" alt="بنك الشام" class="bank-logo-footer">
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// دالة لعرض QR Code في المودال
+function showQRModal(signatureId, signerName) {
+    const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+    const modalContent = document.getElementById('qrModalContent');
+    const downloadBtn = document.getElementById('qrDownloadBtn');
+    
+    // إعادة تعيين المحتوى
+    modalContent.innerHTML = `
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">جاري التحميل...</span>
+        </div>
+    `;
+    
+    // تحديث عنوان المودال
+    document.querySelector('#qrModal .modal-title').innerHTML = `
+        <i class="fas fa-qrcode me-2"></i>
+        توقيع ${signerName}
+    `;
+    
+    // إظهار المودال
+    modal.show();
+    
+    // تحميل صورة QR
+    const qrUrl = `/messaging/signature/${signatureId}/qr/`;
+    const img = new Image();
+    
+    img.onload = function() {
+        modalContent.innerHTML = `
+            <img src="${qrUrl}" 
+                 alt="QR Code للتوقيع الرقمي"
+                 class="img-fluid"
+                 style="max-width: 300px; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; background: white;">
+        `;
+        downloadBtn.href = qrUrl;
+    };
+    
+    img.onerror = function() {
+        modalContent.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                فشل في تحميل رمز QR
+            </div>
+        `;
+        downloadBtn.href = '#';
+    };
+    
+    img.src = qrUrl;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Print functionality
+    const printButton = document.getElementById('print-message-btn');
+    if (printButton) {
+        printButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.print();
+        });
+    }
+    
+    // Archive message functionality
+    const archiveButton = document.querySelector('.archive-message-btn');
+    if (archiveButton) {
+        archiveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const messageId = this.dataset.messageId;
+            console.log('🔄 بدء عملية أرشفة الرسالة:', messageId);
+            
+            if (confirm('هل تريد أرشفة هذه الرسالة؟')) {
+                // Show loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="ph ph-spinner ph-spin me-2"></i> جاري الأرشفة...';
+                this.disabled = true;
+                
+                // Check CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (!csrfToken) {
+                    console.error('❌ CSRF token غير موجود');
+                    alert('خطأ في الأمان - يرجى إعادة تحميل الصفحة');
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    return;
+                }
+                
+                const archiveUrl = `{% url 'messaging:archive_message' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', messageId);
+                console.log('📡 إرسال طلب الأرشفة إلى:', archiveUrl);
+                
+                fetch(archiveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken.value,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    console.log('📨 استلام رد من الخادم:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('✅ بيانات الرد:', data);
+                    if (data.success) {
+                        // Show success message
+                        if (typeof showCustomNotification === 'function') {
+                            showCustomNotification(data.message || 'تم أرشفة الرسالة بنجاح', 'success');
+                        } else {
+                            alert(data.message || 'تم أرشفة الرسالة بنجاح');
+                        }
+                        
+                        // Redirect using URL from response
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || '{% url "messaging:inbox" %}';
+                        }, 1500);
+                    } else {
+                        console.error('❌ فشلت العملية:', data.error);
+                        // Restore button state
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        
+                        const errorMessage = data.error || data.message || 'حدث خطأ أثناء أرشفة الرسالة';
+                        if (typeof showCustomNotification === 'function') {
+                            showCustomNotification(errorMessage, 'error');
+                        } else {
+                            alert(errorMessage);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Restore button state
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    
+                    if (typeof showCustomNotification === 'function') {
+                        showCustomNotification('حدث خطأ أثناء أرشفة الرسالة', 'error');
+                    } else {
+                        alert('حدث خطأ أثناء أرشفة الرسالة');
+                    }
+                });
+            }
+        });
+    }
+    
+    // Unarchive message functionality
+    const unarchiveButton = document.querySelector('.unarchive-message-btn');
+    if (unarchiveButton) {
+        unarchiveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const messageId = this.dataset.messageId;
+            if (confirm('هل تريد استعادة هذه الرسالة من الأرشيف؟')) {
+                // Show loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> جاري الاستعادة...';
+                this.disabled = true;
+                
+                fetch(`{% url 'messaging:unarchive_message' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', messageId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        if (typeof showCustomNotification === 'function') {
+                            showCustomNotification(data.message || 'تم استعادة الرسالة من الأرشيف بنجاح', 'success');
+                        } else {
+                            alert(data.message || 'تم استعادة الرسالة من الأرشيف بنجاح');
+                        }
+                        
+                        // Redirect using URL from response
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || '{% url "messaging:inbox" %}';
+                        }, 1500);
+                    } else {
+                        // Restore button state
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        
+                        const errorMessage = data.error || data.message || 'حدث خطأ أثناء استعادة الرسالة';
+                        if (typeof showCustomNotification === 'function') {
+                            showCustomNotification(errorMessage, 'error');
+                        } else {
+                            alert(errorMessage);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Restore button state
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    
+                    if (typeof showCustomNotification === 'function') {
+                        showCustomNotification('حدث خطأ أثناء استعادة الرسالة', 'error');
+                    } else {
+                        alert('حدث خطأ أثناء استعادة الرسالة');
+                    }
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

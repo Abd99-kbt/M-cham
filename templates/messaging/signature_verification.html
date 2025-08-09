@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}التحقق من التوقيع الرقمي - نظام المراسلات الداخلية{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item">
+    <a href="{% url 'messaging:inbox' %}">الرسائل</a>
+</li>
+<li class="breadcrumb-item active">التحقق من التوقيع الرقمي</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-shield-alt me-2 text-primary"></i>
+                        التحقق من التوقيع الرقمي
+                    </h1>
+                    <p class="text-muted mb-0">
+                        فحص صحة وسلامة التوقيع الرقمي
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'messaging:inbox' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>
+                        العودة للرسائل
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if error %}
+    <!-- Error Message -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        خطأ في التحقق من التوقيع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-times-circle me-2"></i>
+                        {{ error }}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>الأسباب المحتملة:</h6>
+                        <ul class="mb-0">
+                            <li>التوقيع غير موجود في النظام</li>
+                            <li>انتهت صلاحية التوقيع</li>
+                            <li>تم إلغاء التوقيع</li>
+                            <li>التوقيع تالف أو محذوف</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Valid Signature -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Verification Status -->
+            <div class="card border-success mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        التوقيع صالح وموثق
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-shield-check me-2"></i>
+                        <strong>تم التحقق من صحة التوقيع بنجاح</strong>
+                        <br>
+                        <small class="text-muted">
+                            التوقيع الرقمي صالح ولم يتم العبث به
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signer Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-shield me-2"></i>
+                        معلومات الموقع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if verification_details.signer_info %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">الاسم:</label>
+                                <div class="value">{{ verification_details.signer_info.arabic_name }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">رقم الموظف:</label>
+                                <div class="value">{{ verification_details.signer_info.employee_id }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">المنصب:</label>
+                                <div class="value">{{ verification_details.signer_info.position }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">القسم:</label>
+                                <div class="value">{{ verification_details.signer_info.department }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">الهاتف:</label>
+                                <div class="value">{{ verification_details.signer_info.phone }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">البريد الإلكتروني:</label>
+                                <div class="value">{{ verification_details.signer_info.email }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Message Information -->
+            {% if verification_details.message_info %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-envelope me-2"></i>
+                        معلومات الرسالة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">الرقم التسلسلي:</label>
+                                <div class="value">{{ verification_details.message_info.sequence_number }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">التصنيف:</label>
+                                <div class="value">{{ verification_details.message_info.category }}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">الموضوع:</label>
+                                <div class="value">{{ verification_details.message_info.subject }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Signature Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-certificate me-2"></i>
+                        تفاصيل التوقيع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">تاريخ التوقيع:</label>
+                                <div class="value">
+                                    {{ verification_details.signed_at|date:"Y-m-d H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">انتهاء الصلاحية:</label>
+                                <div class="value">
+                                    {{ verification_details.expires_at|date:"Y-m-d H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">حالة التوقيع:</label>
+                                <div class="value">
+                                    <span class="badge bg-success">{{ verification_details.status }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">التحقق من التشفير:</label>
+                                <div class="value">
+                                    {% if verification_details.hash_valid %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>صالح
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>غير صالح
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code Display -->
+            {% if signature %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-qrcode me-2"></i>
+                        رمز QR للتوقيع
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="qr-container mb-3">
+                        {% if signature.qr_code %}
+                            <img src="{% url 'messaging:signature_qr' signature.signature_id %}" 
+                                 alt="QR Code للتوقيع"
+                                 class="img-fluid qr-image"
+                                 style="max-width: 300px;">
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                رمز QR غير متوفر
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="qr-actions">
+                        {% if signature.qr_code %}
+                        <a href="{% url 'messaging:signature_qr' signature.signature_id %}" 
+                           class="btn btn-outline-primary me-2" 
+                           target="_blank">
+                            <i class="fas fa-download me-2"></i>
+                            تحميل QR Code
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'messaging:signature_certificate' signature.signature_id %}" 
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-certificate me-2"></i>
+                            تحميل الشهادة
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Technical Details (for admins) -->
+            {% if user.is_staff %}
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        التفاصيل التقنية (للمشرفين فقط)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">معرف التوقيع:</label>
+                                <div class="value">
+                                    <code>{{ signature.signature_id }}</code>
+                                </div>
+                            </div>
+                        </div>
+                        {% if signature.hash_value %}
+                        <div class="col-12">
+                            <div class="info-item">
+                                <label class="fw-bold text-muted">قيمة التشفير (Hash):</label>
+                                <div class="value">
+                                    <code class="small">{{ signature.hash_value }}</code>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.info-item {
+    margin-bottom: 1rem;
+}
+
+.info-item label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.info-item .value {
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.qr-image {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.qr-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    box-shadow: 0 0 1rem rgba(0,0,0,0.1);
+    border: none;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.6em;
+}
+
+/* تحسينات للطباعة */
+@media print {
+    .btn, .card-header {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .qr-image {
+        max-width: 200px !important;
+    }
+}
+
+/* تحسينات متجاوبة */
+@media (max-width: 768px) {
+    .qr-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .qr-actions .btn {
+        margin: 0 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثيرات تفاعلية للبطاقات
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // إضافة إمكانية نسخ المعرفات
+    const codeElements = document.querySelectorAll('code');
+    codeElements.forEach(code => {
+        code.style.cursor = 'pointer';
+        code.title = 'انقر للنسخ';
+        
+        code.addEventListener('click', function() {
+            navigator.clipboard.writeText(this.textContent).then(function() {
+                // إظهار رسالة نجاح
+                const originalContent = code.textContent;
+                code.textContent = 'تم النسخ!';
+                code.style.backgroundColor = '#d4edda';
+                
+                setTimeout(() => {
+                    code.textContent = originalContent;
+                    code.style.backgroundColor = '';
+                }, 2000);
+            }).catch(function() {
+                alert('فشل في نسخ النص');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

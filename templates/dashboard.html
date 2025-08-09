@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لوحة التحكم - نظام المراسلات الداخلية{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item active">لوحة التحكم</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+                        لوحة التحكم
+                    </h1>
+                    <p class="text-muted mb-0">
+                        مرحباً {{ user.arabic_name|default:user.username }}، {{ user.position.title }}
+                    </p>
+                </div>
+                <div class="text-end">
+                    <div class="small text-muted">آخر دخول:</div>
+                    <div class="fw-bold">{{ user.last_login|date:"Y/m/d H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3">
+                                <i class="fas fa-envelope text-white fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fs-2 fw-bold text-primary">{{ stats.unread_messages }}</div>
+                            <div class="text-muted">رسائل غير مقروءة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3">
+                                <i class="fas fa-paper-plane text-white fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fs-2 fw-bold text-success">{{ stats.sent_messages }}</div>
+                            <div class="text-muted">رسائل مرسلة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-gradient rounded-3 p-3">
+                                <i class="fas fa-clock text-white fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fs-2 fw-bold text-warning">{{ stats.pending_approvals }}</div>
+                            <div class="text-muted">موافقات معلقة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3">
+                                <i class="fas fa-users text-white fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fs-2 fw-bold text-info">{{ stats.active_users }}</div>
+                            <div class="text-muted">مستخدمون نشطون</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        إجراءات سريعة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'messaging:compose' %}" class="btn btn-primary w-100 py-3">
+                                <i class="fas fa-edit d-block fs-4 mb-2"></i>
+                                إنشاء رسالة
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'messaging:inbox' %}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-inbox d-block fs-4 mb-2"></i>
+                                صندوق الوارد
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'workflows:pending' %}" class="btn btn-outline-warning w-100 py-3">
+                                <i class="fas fa-tasks d-block fs-4 mb-2"></i>
+                                الموافقات
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'messaging:archive' %}" class="btn btn-outline-info w-100 py-3">
+                                <i class="fas fa-archive d-block fs-4 mb-2"></i>
+                                الأرشيف
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'security:audit_logs' %}" class="btn btn-outline-secondary w-100 py-3">
+                                <i class="fas fa-shield-alt d-block fs-4 mb-2"></i>
+                                سجل التدقيق
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-dark w-100 py-3">
+                                <i class="fas fa-user d-block fs-4 mb-2"></i>
+                                الملف الشخصي
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Recent Messages -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-envelope me-2"></i>
+                        الرسائل الحديثة
+                    </h5>
+                    <a href="{% url 'messaging:inbox' %}" class="btn btn-sm btn-outline-primary">
+                        عرض الكل
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_messages %}
+                    <div class="list-group list-group-flush">
+                        {% for message in recent_messages %}
+                        <div class="list-group-item list-group-item-action border-0">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'messaging:message_detail' message.message_id %}" 
+                                               class="text-decoration-none">
+                                                {{ message.subject|truncatechars:50 }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">{{ message.created_at|timesince }}</small>
+                                    </div>
+                                    <p class="mb-1 text-muted">من: {{ message.sender.arabic_name|default:message.sender.username }}</p>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-{{ message.category.name|lower }} me-2">
+                                            {{ message.get_category_display }}
+                                        </span>
+                                        {% if message.priority == 'URGENT' %}
+                                        <span class="badge bg-danger">عاجل</span>
+                                        {% elif message.priority == 'HIGH' %}
+                                        <span class="badge bg-warning">مهم</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fs-1 text-muted mb-3"></i>
+                        <p class="text-muted">لا توجد رسائل حديثة</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Pending Approvals -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        الموافقات المعلقة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_approvals %}
+                    {% for approval in recent_approvals %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <div class="fw-bold">{{ approval.title|truncatechars:30 }}</div>
+                            <small class="text-muted">{{ approval.requester.arabic_name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <a href="{% url 'workflows:request_detail' approval.request_id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                عرض
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-check-circle fs-3 text-success mb-2"></i>
+                        <p class="text-muted mb-0">لا توجد موافقات معلقة</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Weekly Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        النشاط الأسبوعي
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="activityChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.quick-action-btn {
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.activity-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Weekly Activity Chart
+const ctx = document.getElementById('activityChart').getContext('2d');
+const activityData = [
+    {% for activity in weekly_activity %}
+    {{ activity.count }}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+const labels = [
+    {% for activity in weekly_activity %}
+    "{{ activity.timestamp__date|date:'m/d' }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'النشاط اليومي',
+            data: activityData,
+            borderColor: '#1e4a6b',
+            backgroundColor: 'rgba(30, 74, 107, 0.1)',
+            tension: 0.1,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Auto-refresh dashboard every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار TinyMCE البسيط</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            direction: rtl; 
+            padding: 20px; 
+            background: #f8f9fa;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status { 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        textarea { 
+            width: 100%; 
+            height: 300px; 
+            border: 2px solid #ddd; 
+            border-radius: 5px; 
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        #log { 
+            background: #f8f9fa; 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            border-radius: 5px; 
+            height: 200px; 
+            overflow-y: auto; 
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 اختبار TinyMCE البسيط</h1>
+        
+        <div id="status-container">
+            <div id="loading-status" class="status info">🔄 جاري تحميل TinyMCE...</div>
+            <div id="success-status" class="status success" style="display: none;">✅ تم تحميل TinyMCE بنجاح!</div>
+            <div id="error-status" class="status error" style="display: none;">❌ فشل في تحميل TinyMCE</div>
+        </div>
+
+        <h2>📝 منطقة الاختبار:</h2>
+        <textarea id="test-editor" placeholder="اكتب هنا لاختبار المحرر...">
+مرحباً! هذا اختبار لمحرر النصوص الغني.
+
+يمكنك تجربة:
+• التنسيق العريض والمائل
+• القوائم والترقيم  
+• الكتابة بالعربية من اليمين لليسار
+• إدراج الروابط والجداول
+
+إذا ظهر شريط الأدوات فوق هذا النص، فالمحرر يعمل بنجاح! 🎉
+        </textarea>
+
+        <div style="margin: 20px 0;">
+            <button onclick="testTinyMCE()">🧪 اختبار المحرر</button>
+            <button onclick="reloadTinyMCE()" class="btn-danger">🔄 إعادة تحميل</button>
+            <button onclick="getContent()">📄 عرض المحتوى</button>
+            <button onclick="clearLog()">🗑️ مسح السجل</button>
+        </div>
+
+        <h3>📊 سجل الأحداث:</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- تحميل TinyMCE -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" 
+            referrerpolicy="origin" 
+            crossorigin="anonymous" 
+            onload="onTinyMCELoad()" 
+            onerror="onTinyMCEError()"></script>
+
+    <!-- Fallback CDN -->
+    <script>
+        let logElement = null;
+        let retryCount = 0;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            logElement = document.getElementById('log');
+            log('📄 تم تحميل الصفحة');
+        });
+
+        function log(message) {
+            const now = new Date().toLocaleTimeString('ar-SA');
+            const text = `[${now}] ${message}\n`;
+            if (logElement) {
+                logElement.textContent += text;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+            console.log(message);
+        }
+
+        function onTinyMCELoad() {
+            log('✅ تم تحميل TinyMCE من CDN الأساسي');
+            document.getElementById('loading-status').style.display = 'none';
+            document.getElementById('success-status').style.display = 'block';
+            initEditor();
+        }
+
+        function onTinyMCEError() {
+            log('⚠️ فشل تحميل CDN الأساسي - جاري تجربة البديل...');
+            loadFallbackTinyMCE();
+        }
+
+        function loadFallbackTinyMCE() {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js';
+            script.crossOrigin = 'anonymous';
+            script.onload = function() {
+                log('✅ تم تحميل TinyMCE من CDN البديل');
+                document.getElementById('loading-status').style.display = 'none';
+                document.getElementById('success-status').style.display = 'block';
+                initEditor();
+            };
+            script.onerror = function() {
+                log('❌ فشل في تحميل TinyMCE من جميع المصادر');
+                document.getElementById('loading-status').style.display = 'none';
+                document.getElementById('error-status').style.display = 'block';
+            };
+            document.head.appendChild(script);
+        }
+
+        function initEditor() {
+            log('🚀 بدء تهيئة محرر TinyMCE...');
+            
+            tinymce.init({
+                selector: '#test-editor',
+                language: 'ar',
+                directionality: 'rtl',
+                height: 300,
+                menubar: false,
+                branding: false,
+                promotion: false,
+                
+                plugins: ['lists', 'link', 'code', 'preview', 'directionality'],
+                toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | ltr rtl | bullist numlist | link | code preview',
+                
+                content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; direction: rtl; text-align: right; }',
+                
+                setup: function(editor) {
+                    editor.on('init', function() {
+                        log('🎉 تم تهيئة محرر TinyMCE بنجاح!');
+                        editor.getDoc().dir = 'rtl';
+                        editor.getBody().style.direction = 'rtl';
+                        editor.getBody().style.textAlign = 'right';
+                    });
+                    
+                    editor.on('change keyup', function() {
+                        log('✏️ تم تحديث محتوى المحرر');
+                    });
+                }
+            });
+        }
+
+        function testTinyMCE() {
+            log('🧪 بدء اختبار المحرر...');
+            
+            if (typeof tinymce === 'undefined') {
+                log('❌ TinyMCE غير محمل');
+                return;
+            }
+            
+            const editor = tinymce.get('test-editor');
+            if (!editor) {
+                log('❌ لم يتم العثور على محرر TinyMCE');
+                return;
+            }
+            
+            log('✅ المحرر موجود ويعمل');
+            log(`📊 حالة المحرر: ${editor.initialized ? 'مهيأ' : 'غير مهيأ'}`);
+            
+            // اختبار إدراج نص
+            editor.setContent('<p><strong>اختبار ناجح!</strong> تم إدراج هذا النص من خلال JavaScript.</p>');
+            log('✅ تم اختبار إدراج المحتوى');
+        }
+
+        function getContent() {
+            const editor = tinymce.get('test-editor');
+            if (editor) {
+                const content = editor.getContent();
+                log('📄 محتوى المحرر: ' + content);
+            } else {
+                log('❌ لا يمكن الحصول على المحرر');
+            }
+        }
+
+        function reloadTinyMCE() {
+            log('🔄 إعادة تحميل المحرر...');
+            
+            if (typeof tinymce !== 'undefined') {
+                tinymce.remove('#test-editor');
+                log('🗑️ تم إزالة المحرر القديم');
+            }
+            
+            setTimeout(initEditor, 500);
+        }
+
+        function clearLog() {
+            if (logElement) {
+                logElement.textContent = '';
+                log('🗑️ تم مسح السجل');
+            }
+        }
+    </script>
+</body>
+</html>

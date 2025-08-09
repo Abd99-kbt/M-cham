@@ -1,0 +1,952 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إنشاء رسالة جديدة - نظام المراسلات الداخلية{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item">
+    <a href="{% url 'messaging:inbox' %}">الرسائل</a>
+</li>
+<li class="breadcrumb-item active">إنشاء رسالة</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-edit me-2 text-primary"></i>
+                        إنشاء رسالة جديدة
+                    </h1>
+                    <p class="text-muted mb-0">
+                        أرسل رسالة آمنة داخل البنك
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'messaging:inbox' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>
+                        العودة للرسائل
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compose Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card compose-form">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-envelope me-2"></i>
+                        بيانات الرسالة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation auto-save" id="messageForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Recipients -->
+                        <div class="mb-3">
+                            <label for="id_recipients" class="form-label">
+                                <i class="fas fa-users me-2"></i>
+                                المستقبلون <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" 
+                                    id="id_recipients" 
+                                    name="recipients" 
+                                    multiple 
+                                    required
+                                    size="4">
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.arabic_name }} ({{ user.department.name }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                يرجى اختيار مستقبل واحد على الأقل
+                            </div>
+                            <div class="form-text">
+                                استخدم Ctrl + Click لاختيار عدة مستقبلين
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-2" id="select-all-recipients">
+                                        <i class="fas fa-check-square me-1"></i>
+                                        اختيار الكل
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-recipients">
+                                        <i class="fas fa-square me-1"></i>
+                                        إلغاء الاختيار
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="mb-3">
+                            <label for="id_subject" class="form-label">
+                                <i class="fas fa-heading me-2"></i>
+                                الموضوع <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="id_subject" 
+                                   name="subject" 
+                                   placeholder="أدخل موضوع الرسالة"
+                                   required
+                                   maxlength="200">
+                            <div class="invalid-feedback">
+                                يرجى إدخال موضوع الرسالة
+                            </div>
+                        </div>
+
+                        <!-- Message Classification -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="id_category" class="form-label">
+                                    <i class="fas fa-tags me-2"></i>
+                                    التصنيف <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="id_category" name="category" required>
+                                    <option value="">اختر التصنيف</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.description }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    يرجى اختيار تصنيف الرسالة
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="id_priority" class="form-label">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    الأولوية
+                                </label>
+                                <select class="form-select" id="id_priority" name="priority">
+                                    <option value="NORMAL">عادية</option>
+                                    <option value="HIGH">مهمة</option>
+                                    <option value="URGENT">عاجلة</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="id_confidentiality" class="form-label">
+                                    <i class="fas fa-shield-alt me-2"></i>
+                                    مستوى السرية
+                                </label>
+                                <select class="form-select" id="id_confidentiality" name="confidentiality">
+                                    <option value="PUBLIC">عامة</option>
+                                    <option value="INTERNAL">داخلية</option>
+                                    <option value="CONFIDENTIAL">سرية</option>
+                                    <option value="HIGHLY_CONFIDENTIAL">سرية للغاية</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Message Body -->
+                        <div class="mb-3">
+                            <label for="id_body" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>
+                                نص الرسالة <span class="text-danger">*</span>
+                            </label>
+                            <div class="rich-text-editor-container">
+                                <!-- رسالة تحميل المحرر -->
+                                <div id="editor-loading" class="alert alert-info" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    جاري تحميل محرر النصوص المتقدم...
+                                </div>
+                                
+                                <!-- رسالة خطأ في التحميل -->
+                                <div id="editor-error" class="alert alert-warning" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>تنبيه:</strong> لم يتم تحميل محرر النصوص المتقدم. 
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary ms-1" onclick="location.reload()">
+                                            <i class="fas fa-refresh"></i> إعادة تحميل الصفحة
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1" id="retry-editor">
+                                            <i class="fas fa-redo"></i> إعادة المحاولة
+                                        </button>
+                                        <a href="/messaging/debug-tinymce/" target="_blank" class="btn btn-sm btn-outline-info ms-1">
+                                            <i class="fas fa-bug"></i> تشخيص المشكلة
+                                        </a>
+                                    </div>
+                                    <small class="mt-2 d-block">
+                                        يمكنك الاستمرار في الكتابة باستخدام محرر النصوص البسيط أو 
+                                        <a href="/messaging/debug-tinymce/" target="_blank">فتح صفحة التشخيص</a> لحل المشكلة.
+                                    </small>
+                                </div>
+                                
+                                <!-- رسالة نجاح التحميل -->
+                                <div id="editor-success" class="alert alert-success" style="display: none;">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    تم تحميل محرر النصوص المتقدم بنجاح!
+                                </div>
+                                
+                                <textarea class="form-control" 
+                                          id="id_body" 
+                                          name="body" 
+                                          rows="12" 
+                                          placeholder="اكتب نص الرسالة هنا..."
+                                          required></textarea>
+                            </div>
+                            <div class="invalid-feedback">
+                                يرجى إدخال نص الرسالة
+                            </div>
+                            <div class="form-text mt-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        يمكنك تنسيق النص باستخدام أدوات التحرير المتقدمة
+                                    </span>
+                                    <span class="text-muted">
+                                        عدد الكلمات: <span id="word-count">0</span> | 
+                                        عدد الأحرف: <span id="body-count">0</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attachments -->
+                        <div class="mb-3">
+                            <label for="id_attachments" class="form-label">
+                                <i class="fas fa-paperclip me-2"></i>
+                                المرفقات
+                            </label>
+                            <input type="file" 
+                                   class="form-control file-upload" 
+                                   id="id_attachments" 
+                                   name="attachments" 
+                                   multiple
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.png">
+                            <div class="form-text">
+                                يمكنك رفع ملفات بحجم أقصى 10 ميجابايت لكل ملف. الأنواع المدعومة: PDF, Word, Excel, صور
+                            </div>
+                            <div class="file-preview mt-2"></div>
+                        </div>
+
+                        <!-- Security Options -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-lock me-2"></i>
+                                    خيارات الأمان
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="id_prevent_forwarding" 
+                                                   name="prevent_forwarding">
+                                            <label class="form-check-label" for="id_prevent_forwarding">
+                                                منع إعادة التوجيه
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="id_require_confirmation" 
+                                                   name="require_confirmation">
+                                            <label class="form-check-label" for="id_require_confirmation">
+                                                طلب تأكيد القراءة
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="id_digital_signature" 
+                                                   name="digital_signature">
+                                            <label class="form-check-label" for="id_digital_signature">
+                                                توقيع رقمي
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="id_auto_delete" 
+                                                   name="auto_delete">
+                                            <label class="form-check-label" for="id_auto_delete">
+                                                حذف تلقائي بعد 30 يوماً
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="submit" name="action" value="send" class="btn btn-primary btn-lg btn-send">
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    إرسال الرسالة
+                                </button>
+                                <button type="submit" name="action" value="draft" class="btn btn-outline-secondary btn-save ms-2">
+                                    <i class="fas fa-save me-2"></i>
+                                    حفظ كمسودة
+                                </button>
+                            </div>
+                            <div class="draft-status text-muted small"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Recipients -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        مستلمون مفضلون
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action border-0 px-0 py-2 quick-recipient">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-2">
+                                    <i class="fas fa-user-circle text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">المدير العام</div>
+                                    <small class="text-muted">الإدارة العامة</small>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 px-0 py-2 quick-recipient">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-2">
+                                    <i class="fas fa-user-circle text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">مدير تقنية المعلومات</div>
+                                    <small class="text-muted">تقنية المعلومات</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Templates -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-file-alt me-2"></i>
+                        قوالب الرسائل
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action border-0 px-0 py-2 message-template" 
+                           data-subject="طلب موافقة" 
+                           data-body="يرجى النظر في الطلب المرفق والموافقة عليه.">
+                            <i class="fas fa-check-circle me-2 text-success"></i>
+                            طلب موافقة
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 px-0 py-2 message-template"
+                           data-subject="تقرير شهري"
+                           data-body="يشرفني أن أرفع لسيادتكم التقرير الشهري للفترة...">
+                            <i class="fas fa-chart-line me-2 text-info"></i>
+                            تقرير شهري
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 px-0 py-2 message-template"
+                           data-subject="اجتماع عاجل"
+                           data-body="نرجو حضوركم لاجتماع عاجل في...">
+                            <i class="fas fa-calendar-alt me-2 text-warning"></i>
+                            دعوة اجتماع
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        نصائح أمنية
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            تأكد من صحة عناوين المستلمين
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            استخدم التصنيف المناسب للرسالة
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            فعل الحذف التلقائي للرسائل الحساسة
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            استخدم التوقيع الرقمي للمستندات المهمة
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recipients Modal -->
+<div class="modal fade" id="recipientsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-address-book me-2"></i>
+                    اختيار المستلمين
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search -->
+                <div class="mb-3">
+                    <input type="text" 
+                           class="form-control search-input" 
+                           placeholder="البحث في دليل الموظفين..."
+                           data-target="recipients">
+                </div>
+                
+                <!-- Departments -->
+                <div class="accordion" id="departmentsAccordion">
+                    <div class="accordion-item">
+                        <h6 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#dept1">
+                                <i class="fas fa-building me-2"></i>
+                                الإدارة العامة
+                            </button>
+                        </h6>
+                        <div id="dept1" class="accordion-collapse collapse show" data-bs-parent="#departmentsAccordion">
+                            <div class="accordion-body">
+                                <div class="form-check">
+                                    <input class="form-check-input recipient-checkbox" type="checkbox" id="user1" value="admin">
+                                    <label class="form-check-label" for="user1">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-user-circle me-2 text-primary"></i>
+                                            <div>
+                                                <div class="fw-bold">المدير العام</div>
+                                                <small class="text-muted">admin@bank.com</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h6 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dept2">
+                                <i class="fas fa-laptop me-2"></i>
+                                تقنية المعلومات
+                            </button>
+                        </h6>
+                        <div id="dept2" class="accordion-collapse collapse" data-bs-parent="#departmentsAccordion">
+                            <div class="accordion-body">
+                                <div class="form-check">
+                                    <input class="form-check-input recipient-checkbox" type="checkbox" id="user2" value="itmanager">
+                                    <label class="form-check-label" for="user2">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-user-circle me-2 text-success"></i>
+                                            <div>
+                                                <div class="fw-bold">مدير تقنية المعلومات</div>
+                                                <small class="text-muted">itmanager@bank.com</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="me-auto">
+                    <small class="text-muted">تم اختيار <span id="selected-count">0</span> مستلم</small>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="addRecipients">إضافة المستلمين</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.compose-form {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.quick-recipient:hover,
+.message-template:hover {
+    background-color: rgba(30, 74, 107, 0.05);
+}
+
+.file-preview .attachment-item {
+    background-color: var(--light-color);
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(30, 74, 107, 0.25);
+}
+
+.recipient-checkbox:checked + label {
+    background-color: rgba(30, 74, 107, 0.1);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+}
+
+#body-count, #word-count {
+    font-weight: 600;
+}
+
+.draft-status {
+    display: flex;
+    align-items: center;
+}
+
+/* تنسيق محرر النصوص الغني */
+.rich-text-editor-container {
+    position: relative;
+}
+
+.rich-text-editor-container .tox-tinymce {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0 0 0.2rem rgba(30, 74, 107, 0.1);
+}
+
+.rich-text-editor-container .tox-toolbar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.rich-text-editor-container .tox-edit-area {
+    background-color: white;
+}
+
+/* دعم اللغة العربية */
+.rich-text-editor-container .tox-edit-area__iframe {
+    direction: rtl;
+    text-align: right;
+}
+
+/* تخصيص شريط الأدوات */
+.rich-text-editor-container .tox-toolbar-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.rich-text-editor-container .tox-toolbar__group {
+    border-color: #dee2e6;
+}
+
+/* تحسين مظهر الأزرار */
+.rich-text-editor-container .tox-tbtn {
+    border-radius: 4px;
+    margin: 1px;
+}
+
+.rich-text-editor-container .tox-tbtn:hover {
+    background-color: rgba(30, 74, 107, 0.1);
+}
+
+.rich-text-editor-container .tox-tbtn--enabled {
+    background-color: rgba(30, 74, 107, 0.2);
+}
+
+/* تحسين شريط الحالة */
+.rich-text-editor-container .tox-statusbar {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* تنسيق القوائم المنسدلة */
+.rich-text-editor-container .tox-collection__item {
+    direction: rtl;
+    text-align: right;
+}
+
+/* تحسين نافذة الحوار */
+.tox-dialog {
+    direction: rtl;
+}
+
+.tox-dialog__body {
+    direction: rtl;
+    text-align: right;
+}
+
+/* تنسيق خاص للـ fullscreen mode */
+.tox-fullscreen .tox-edit-area__iframe {
+    direction: rtl;
+    text-align: right;
+}
+
+/* إضافات للتوافق مع Bootstrap */
+.rich-text-editor-container .tox {
+    font-family: 'Tajawal', Arial, sans-serif;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- تحميل ملف التشخيص -->
+<script src="{% static 'js/tinymce-debug.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // إظهار رسالة التحميل
+    $('#editor-loading').show();
+    
+    // انتظار تحميل TinyMCE بالكامل
+    function initTinyMCE() {
+        // تحقق متعدد المراحل من TinyMCE
+        if (typeof tinymce === 'undefined') {
+            console.error('❌ TinyMCE غير متاح - فشل في التحميل');
+            $('#editor-loading').hide();
+            $('#editor-error').show();
+            
+            // إخفاء الرسالة بعد 10 ثوان
+            setTimeout(function() {
+                $('#editor-error').fadeOut();
+            }, 10000);
+            return false;
+        }
+
+        // تحقق من أن TinyMCE محمل بالكامل
+        if (!tinymce.init) {
+            console.warn('⚠️ TinyMCE محمل جزئياً - انتظار...');
+            setTimeout(initTinyMCE, 500);
+            return false;
+        }
+
+        console.log('🚀 بدء تهيئة محرر النصوص الغني TinyMCE');
+        $('#editor-loading').hide();
+        
+        // تهيئة محرر النصوص الغني TinyMCE (تكوين مبسط)
+        var config = {
+            selector: '#id_body',
+            language: 'ar',
+            directionality: 'rtl',
+            height: 400,
+            menubar: false,
+            branding: false,
+            promotion: false,
+            statusbar: true,
+            resize: true,
+            
+            // الـ plugins الأساسية فقط
+            plugins: [
+                'lists', 'link', 'charmap', 'preview', 'searchreplace', 
+                'visualblocks', 'code', 'fullscreen', 'wordcount', 
+                'emoticons', 'directionality', 'table'
+            ],
+            
+            // شريط أدوات مبسط
+            toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright | ltr rtl | bullist numlist | link | fullscreen preview',
+            
+            // تنسيقات النصوص الأساسية
+            block_formats: 'فقرة=p; عنوان 1=h1; عنوان 2=h2; عنوان 3=h3; اقتباس=blockquote',
+            
+            // إعدادات المحتوى المبسطة
+            content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; direction: rtl; text-align: right; }',
+            
+            // إعدادات المحرر الأساسية
+            setup: function(editor) {
+                editor.on('init', function() {
+                    console.log('✅ تم تهيئة محرر النصوص الغني بنجاح');
+                    editor.getDoc().dir = 'rtl';
+                    editor.getBody().style.direction = 'rtl';
+                    editor.getBody().style.textAlign = 'right';
+                    
+                    // إظهار رسالة النجاح
+                    $('#editor-success').show();
+                    setTimeout(function() {
+                        $('#editor-success').fadeOut();
+                    }, 3000);
+                });
+            }
+        };
+        
+        // تهيئة TinyMCE مع التعامل مع الأخطاء
+        try {
+            tinymce.init(config);
+        } catch (error) {
+            console.error('❌ خطأ في تهيئة TinyMCE:', error);
+            $('#editor-loading').hide();
+            $('#editor-error').show();
+        }
+        
+        return true;
+    }
+
+    // زر إعادة المحاولة
+    $('#retry-editor').on('click', function() {
+        $('#editor-error').hide();
+        $('#editor-loading').show();
+        
+        // محاولة إعادة تحميل TinyMCE
+        setTimeout(function() {
+            tryInitTinyMCE(1);
+        }, 500);
+    });
+
+    // محاولة تهيئة المحرر مع فترات انتظار متدرجة
+    function tryInitTinyMCE(attempt) {
+        attempt = attempt || 1;
+        console.log(`🔄 محاولة ${attempt} لتهيئة TinyMCE`);
+        
+        if (initTinyMCE()) {
+            console.log('✅ تم تهيئة المحرر بنجاح');
+            return;
+        }
+        
+        // إعادة المحاولة حتى 5 مرات
+        if (attempt < 5) {
+            setTimeout(function() {
+                tryInitTinyMCE(attempt + 1);
+            }, attempt * 1000); // زيادة وقت الانتظار مع كل محاولة
+        } else {
+            console.error('❌ فشل في تهيئة TinyMCE بعد 5 محاولات');
+            $('#editor-loading').hide();
+            $('#editor-error').show();
+        }
+    }
+    
+    // بدء المحاولات
+    setTimeout(tryInitTinyMCE, 500);
+
+    // Character counter for message body (fallback for non-TinyMCE)
+    $('#id_body').on('input', function() {
+        if (!tinymce.get('id_body')) {
+            const count = $(this).val().length;
+            $('#body-count').text(count);
+            
+            if (count > 5000) {
+                $('#body-count').addClass('text-danger');
+            } else {
+                $('#body-count').removeClass('text-danger');
+            }
+        }
+    });
+
+    // Recipients management with new select field
+    $('#select-all-recipients').on('click', function(e) {
+        e.preventDefault();
+        $('#id_recipients option').prop('selected', true);
+    });
+
+    $('#clear-recipients').on('click', function(e) {
+        e.preventDefault();
+        $('#id_recipients option').prop('selected', false);
+    });
+
+    // Quick recipients from sidebar (now works with select field)
+    $('.quick-recipient').on('click', function(e) {
+        e.preventDefault();
+        const userId = $(this).data('user-id');
+        if (userId) {
+            $(`#id_recipients option[value="${userId}"]`).prop('selected', true);
+        }
+    });
+
+    // Message templates - Enhanced for TinyMCE
+    $('.message-template').on('click', function(e) {
+        e.preventDefault();
+        const subject = $(this).data('subject');
+        const body = $(this).data('body');
+        
+        $('#id_subject').val(subject);
+        
+        // Set content in TinyMCE if available, otherwise use textarea
+        if (tinymce.get('id_body')) {
+            tinymce.get('id_body').setContent(body);
+            // Trigger change event to update character count
+            tinymce.get('id_body').fire('change');
+        } else {
+            $('#id_body').val(body);
+            $('#id_body').trigger('input'); // Update character count
+        }
+    });
+
+    // Recipients modal
+    $('.recipient-checkbox').on('change', function() {
+        updateSelectedCount();
+    });
+
+    function updateSelectedCount() {
+        const count = $('.recipient-checkbox:checked').length;
+        $('#selected-count').text(count);
+    }
+
+    $('#addRecipients').on('click', function() {
+        const selectedUsers = [];
+        $('.recipient-checkbox:checked').each(function() {
+            const label = $(this).siblings('label').find('.fw-bold').text();
+            selectedUsers.push(label);
+        });
+        
+        if (selectedUsers.length > 0) {
+            const currentTo = $('#id_to').val();
+            if (currentTo) {
+                $('#id_to').val(currentTo + ', ' + selectedUsers.join(', '));
+            } else {
+                $('#id_to').val(selectedUsers.join(', '));
+            }
+            
+            $('#recipientsModal').modal('hide');
+        }
+    });
+
+    // Priority and confidentiality warnings
+    $('#id_priority').on('change', function() {
+        if ($(this).val() === 'URGENT') {
+            showAlert('تم تحديد أولوية عاجلة. ستصل إشعارات فورية للمستلمين.', 'warning');
+        }
+    });
+
+    $('#id_confidentiality').on('change', function() {
+        if ($(this).val() === 'HIGHLY_CONFIDENTIAL') {
+            showAlert('تم تحديد مستوى سرية عالي. سيتم منع إعادة التوجيه تلقائياً.', 'info');
+            $('#id_prevent_forwarding').prop('checked', true);
+        }
+    });
+
+    // Form validation enhancements
+    $('.needs-validation').on('submit', function(e) {
+        // Get content from TinyMCE
+        const bodyContent = tinymce.get('id_body') ? tinymce.get('id_body').getContent() : $('#id_body').val();
+        const bodyText = tinymce.get('id_body') ? tinymce.get('id_body').getContent({format: 'text'}) : $('#id_body').val();
+        
+        // Check if recipients are selected
+        const recipients = $('#id_recipients').val();
+        if (!recipients || recipients.length === 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('يرجى اختيار مستقبل واحد على الأقل');
+            $('#id_recipients').focus();
+            return false;
+        }
+
+        // Check message length
+        if (bodyText.length > 5000) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('نص الرسالة طويل جداً. الحد الأقصى 5000 حرف.');
+            if (tinymce.get('id_body')) {
+                tinymce.get('id_body').focus();
+            } else {
+                $('#id_body').focus();
+            }
+            return false;
+        }
+
+        // Check if message body is empty
+        if (!bodyText.trim()) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('يرجى إدخال نص الرسالة');
+            if (tinymce.get('id_body')) {
+                tinymce.get('id_body').focus();
+            } else {
+                $('#id_body').focus();
+            }
+            return false;
+        }
+
+        // Show loading state
+        const submitBtn = $('.btn-send');
+        const originalText = submitBtn.html();
+        submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الإرسال...');
+        submitBtn.prop('disabled', true);
+        
+        // Restore button if form submission fails
+        setTimeout(() => {
+            submitBtn.html(originalText);
+            submitBtn.prop('disabled', false);
+        }, 10000);
+    });
+
+    // Enhanced Form validation for TinyMCE
+    $('#messageForm').on('submit', function(e) {
+        const recipients = $('#id_recipients').val();
+        const subject = $('#id_subject').val().trim();
+        
+        // Get content from TinyMCE or fallback to textarea
+        let bodyContent = '';
+        let bodyText = '';
+        
+        if (tinymce.get('id_body')) {
+            bodyContent = tinymce.get('id_body').getContent();
+            bodyText = tinymce.get('id_body').getContent({format: 'text'});
+            // Update the textarea with TinyMCE content before submission
+            $('#id_body').val(bodyContent);
+        } else {
+            bodyContent = $('#id_body').val();
+            bodyText = bodyContent;
+        }
+        
+        if (!recipients || recipients.length === 0) {
+            e.preventDefault();
+            alert('يرجى اختيار مستقبل واحد على الأقل');
+            $('#id_recipients').focus();
+            return false;
+        }
+        
+        if (!subject) {
+            e.preventDefault();
+            alert('يرجى إدخال موضوع الرسالة');
+            $('#id_subject').focus();
+            return false;
+        }
+        
+        if (!bodyText.trim()) {
+            e.preventDefault();
+            alert('يرجى إدخال نص الرسالة');
+            if (tinymce.get('id_body')) {
+                tinymce.get('id_body').focus();
+            } else {
+                $('#id_body').focus();
+            }
+            return false;
+        }
+        
+        return true;
+    });
+
+    // Auto-save functionality is handled by main.js
+});
+</script>
+{% endblock %}

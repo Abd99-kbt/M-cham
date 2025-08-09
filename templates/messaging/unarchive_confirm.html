@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تأكيد استعادة الرسالة - نظام المراسلات الداخلية{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirm-card {
+        max-width: 600px;
+        margin: 2rem auto;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .confirm-header {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    .confirm-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    .message-preview {
+        background: #f8f9fa;
+        border-left: 4px solid #28a745;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 8px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        padding: 2rem;
+    }
+    .modern-btn-unarchive {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+    .modern-btn-unarchive:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+    .modern-btn-cancel {
+        background: transparent;
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        padding: 10px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+    .modern-btn-cancel:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+    }
+    .archived-badge {
+        background: linear-gradient(45deg, #6c757d, #495057);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4 animate-fade-in-up">
+        <ol class="breadcrumb modern-breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'messaging:archive' %}">
+                    <i class="ph ph-archive"></i> الأرشيف
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'messaging:message_detail' message.message_id %}">
+                    <i class="ph ph-file-text"></i> تفاصيل الرسالة
+                </a>
+            </li>
+            <li class="breadcrumb-item active">تأكيد الاستعادة</li>
+        </ol>
+    </nav>
+
+    <!-- Confirmation Card -->
+    <div class="confirm-card animate-fade-in-up">
+        <!-- Header -->
+        <div class="confirm-header">
+            <div class="confirm-icon">
+                <i class="ph ph-arrow-counter-clockwise"></i>
+            </div>
+            <h2 class="mb-0">تأكيد استعادة الرسالة</h2>
+            <p class="mb-0 mt-2 opacity-75">هل أنت متأكد من استعادة هذه الرسالة من الأرشيف؟</p>
+        </div>
+
+        <!-- Message Preview -->
+        <div class="p-4">
+            <div class="message-preview">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="mb-0">
+                        <i class="ph ph-envelope me-2"></i>
+                        {{ message.subject }}
+                    </h6>
+                    <span class="archived-badge">
+                        <i class="ph ph-archive me-1"></i>
+                        مؤرشفة
+                    </span>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="ph ph-user me-1"></i>
+                            <strong>من:</strong> {{ message.sender.arabic_name|default:message.sender.username }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="ph ph-calendar me-1"></i>
+                            <strong>تاريخ الإرسال:</strong> {{ message.created_at|date:"Y/m/d H:i" }}
+                        </small>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="ph ph-archive me-1"></i>
+                            <strong>تاريخ الأرشفة:</strong> {{ message.archived_at|date:"Y/m/d H:i" }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="ph ph-clock me-1"></i>
+                            <strong>مؤرشفة منذ:</strong> {{ message.archived_at|timesince }}
+                        </small>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="ph ph-file-text me-1"></i>
+                        <strong>المحتوى:</strong> {{ message.body|truncatechars:100 }}
+                    </small>
+                </div>
+                {% if message.category %}
+                <div class="mt-2">
+                    <span class="badge bg-secondary">
+                        <i class="ph ph-tag me-1"></i>
+                        {{ message.category.get_name_display }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Info Note -->
+            <div class="alert alert-info d-flex align-items-center mt-3">
+                <i class="ph ph-info me-2 fs-5"></i>
+                <div>
+                    <strong>ملاحظة:</strong> 
+                    ستتم استعادة الرسالة إلى صندوق الوارد وإزالتها من الأرشيف.
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons bg-light">
+            <form method="post" id="unarchiveForm" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="modern-btn-unarchive" id="confirmUnarchive">
+                    <i class="ph ph-arrow-counter-clockwise me-2"></i>
+                    تأكيد الاستعادة
+                </button>
+            </form>
+            <a href="{% url 'messaging:message_detail' message.message_id %}" class="modern-btn-cancel">
+                <i class="ph ph-x me-2"></i>
+                إلغاء
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('unarchiveForm');
+    const button = document.getElementById('confirmUnarchive');
+    
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        button.innerHTML = '<i class="ph ph-spinner ph-spin me-2"></i> جاري الاستعادة...';
+        button.disabled = true;
+        
+        // Add loading class for visual feedback
+        button.classList.add('loading');
+    });
+    
+    // Add some interactive effects
+    const card = document.querySelector('.confirm-card');
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+
+<style>
+.modern-btn-unarchive.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.confirm-card {
+    transition: transform 0.3s ease;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}صندوق الوارد - نظام المراسلات الداخلية{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item active">صندوق الوارد</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="modern-page-title animate-fade-in-right">
+                        <i class="ph ph-tray"></i>
+                        صندوق الوارد
+                    </h1>
+                    <p class="modern-page-subtitle animate-fade-in-right delay-100">
+                        الرسائل الواردة إليك ({{ message_recipients.paginator.count|default:0 }} رسالة)
+                    </p>
+                </div>
+                <div class="animate-fade-in-right delay-200">
+                    <a href="{% url 'messaging:compose' %}" class="modern-btn modern-btn-primary modern-btn-lg">
+                        <i class="ph ph-pencil"></i>
+                        <span>إنشاء رسالة جديدة</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-100">
+                <i class="modern-stat-icon ph ph-tray"></i>
+                <div class="modern-stat-number">{{ message_recipients.paginator.count|default:0 }}</div>
+                <div class="modern-stat-label">إجمالي الرسائل</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-200">
+                <i class="modern-stat-icon ph ph-envelope"></i>
+                <div class="modern-stat-number">{{ unread_count|default:0 }}</div>
+                <div class="modern-stat-label">غير مقروءة</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-300">
+                <i class="modern-stat-icon ph ph-warning-circle"></i>
+                <div class="modern-stat-number">{{ urgent_count|default:0 }}</div>
+                <div class="modern-stat-label">رسائل عاجلة</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-400">
+                <i class="modern-stat-icon ph ph-lock"></i>
+                <div class="modern-stat-number">{{ confidential_count|default:0 }}</div>
+                <div class="modern-stat-label">رسائل سرية</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="modern-card animate-fade-in-up delay-500">
+                <div class="modern-card-header">
+                    <h6 class="mb-0">
+                        <i class="ph ph-navigation me-2"></i>
+                        المراسلات
+                    </h6>
+                </div>
+                <div class="modern-card-body p-2">
+                    <div class="nav flex-column">
+                        <a class="modern-sidebar nav-link active" href="{% url 'messaging:inbox' %}">
+                            <i class="ph ph-tray"></i>
+                            <span>صندوق الوارد</span>
+                            <span class="badge bg-primary ms-auto">{{ message_recipients.paginator.count|default:0 }}</span>
+                        </a>
+                        <a class="modern-sidebar nav-link" href="{% url 'messaging:sent' %}">
+                            <i class="ph ph-paper-plane-tilt"></i>
+                            <span>الرسائل المرسلة</span>
+                        </a>
+                        <a class="modern-sidebar nav-link" href="{% url 'messaging:drafts' %}">
+                            <i class="ph ph-file-dashed"></i>
+                            <span>المسودات</span>
+                        </a>
+                        <a class="modern-sidebar nav-link" href="{% url 'messaging:archive' %}">
+                            <i class="ph ph-archive"></i>
+                            <span>الأرشيف</span>
+                        </a>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Quick Filters -->
+            <div class="modern-card mt-4 animate-fade-in-up delay-600">
+                <div class="modern-card-header">
+                    <h6 class="mb-0">
+                        <i class="ph ph-funnel me-2"></i>
+                        التصفية السريعة
+                    </h6>
+                </div>
+                <div class="modern-card-body p-2">
+                    <div class="nav flex-column">
+                        <a class="modern-sidebar nav-link" href="?filter=unread">
+                            <i class="ph ph-envelope"></i>
+                            <span>غير مقروءة</span>
+                            <span class="badge bg-warning ms-auto">{{ unread_count|default:0 }}</span>
+                        </a>
+                        <a class="modern-sidebar nav-link" href="?filter=urgent">
+                            <i class="ph ph-warning-circle text-danger"></i>
+                            <span>عاجلة</span>
+                            <span class="badge bg-danger ms-auto">{{ urgent_count|default:0 }}</span>
+                        </a>
+                        <a class="modern-sidebar nav-link" href="?filter=confidential">
+                            <i class="ph ph-lock text-warning"></i>
+                            <span>سرية</span>
+                            <span class="badge bg-warning ms-auto">{{ confidential_count|default:0 }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages List -->
+        <div class="col-lg-9">
+            <!-- Search and Actions -->
+            <div class="modern-card mb-4 animate-fade-in-up delay-700">
+                <div class="modern-card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" 
+                                       class="modern-form-control search-input" 
+                                       placeholder="البحث في الرسائل..."
+                                       data-target="messages"
+                                       id="messageSearch">
+                                <button class="modern-btn modern-btn-secondary" type="button">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="modern-btn modern-btn-secondary" onclick="location.reload()" data-bs-toggle="tooltip" title="تحديث">
+                                    <i class="ph ph-arrow-clockwise"></i>
+                                </button>
+                                <div class="dropdown">
+                                    <button type="button" class="modern-btn modern-btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="ph ph-sort-ascending"></i>
+                                    ترتيب
+                                </button>
+                                <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="?sort=date"><i class="ph ph-calendar me-2"></i>حسب التاريخ</a></li>
+                                        <li><a class="dropdown-item" href="?sort=sender"><i class="ph ph-user me-2"></i>حسب المرسل</a></li>
+                                        <li><a class="dropdown-item" href="?sort=priority"><i class="ph ph-warning-circle me-2"></i>حسب الأولوية</a></li>
+                                </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if message_recipients %}
+            <div class="messages-container">
+                {% for recipient in message_recipients %}
+                <div class="modern-card message-card mb-3 {% if not recipient.read_at %}unread{% endif %} 
+                           {% if recipient.message.priority == 'URGENT' %}urgent{% endif %}
+                           {% if recipient.message.confidentiality == 'HIGHLY_CONFIDENTIAL' %}confidential{% endif %} animate-fade-in-up"
+                     data-id="{{ recipient.message.message_id }}" 
+                     style="animation-delay: {{ forloop.counter0|add:7 }}00ms">
+                    <div class="modern-card-body">
+                        <div class="d-flex align-items-start">
+                            <!-- Message Status Indicator -->
+                            {% if not recipient.read_at %}
+                            <div class="message-status-indicator me-3"></div>
+                            {% endif %}
+                            
+                            <!-- Sender Avatar -->
+                            <div class="message-avatar me-3">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 45px; height: 45px;">
+                                    <span class="text-white fw-bold">{{ recipient.message.sender.arabic_name|first }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Message Content -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                        <h6 class="mb-1 fw-bold message-sender">
+                                                {{ recipient.message.sender.arabic_name|default:recipient.message.sender.username }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                {{ recipient.message.sender.position.title }} - 
+                                                {{ recipient.message.sender.department.name }}
+                                            </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted message-date">
+                                            {{ recipient.message.created_at|timesince }}
+                                        </small>
+                                        {% if not recipient.read_at %}
+                                        <div class="mt-1">
+                                            <span class="badge bg-primary animate-pulse">
+                                                <i class="ph ph-circle-notch me-1"></i>
+                                                جديدة
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Subject -->
+                                <h5 class="message-subject mb-2">
+                                    <a href="{% url 'messaging:message_detail' recipient.message.message_id %}" 
+                                       class="text-decoration-none text-dark fw-semibold">
+                                        {{ recipient.message.subject }}
+                                    </a>
+                                </h5>
+                                
+                                <!-- Preview -->
+                                <p class="message-preview text-muted mb-3">
+                                    {{ recipient.message.body|truncatechars:150 }}
+                                </p>
+
+                                <!-- Message Tags -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="message-tags">
+                                        <!-- Priority -->
+                                        {% if recipient.message.priority == 'URGENT' %}
+                                        <span class="badge bg-danger d-inline-flex align-items-center me-2">
+                                            <i class="ph ph-warning-circle me-1"></i>
+                                            عاجلة
+                                        </span>
+                                        {% elif recipient.message.priority == 'HIGH' %}
+                                        <span class="badge bg-warning d-inline-flex align-items-center me-2">
+                                            <i class="ph ph-warning me-1"></i>
+                                            مهمة
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-info d-inline-flex align-items-center me-2">
+                                            <i class="ph ph-info me-1"></i>
+                                            عادية
+                                        </span>
+                                        {% endif %}
+
+                                        <!-- Category -->
+                                        <span class="badge bg-secondary me-2">
+                                            <i class="ph ph-tag me-1"></i>
+                                            {{ recipient.message.category.description }}
+                                        </span>
+
+                                        <!-- Confidentiality -->
+                                        {% if recipient.message.confidentiality == 'HIGHLY_CONFIDENTIAL' %}
+                                        <span class="badge bg-danger me-2">
+                                            <i class="ph ph-lock me-1"></i>
+                                            سرية للغاية
+                                        </span>
+                                        {% elif recipient.message.confidentiality == 'CONFIDENTIAL' %}
+                                        <span class="badge bg-warning me-2">
+                                            <i class="ph ph-shield-check me-1"></i>
+                                            سرية
+                                        </span>
+                                        {% endif %}
+
+                                        <!-- Attachments -->
+                                        {% if recipient.message.messageattachment_set.count > 0 %}
+                                        <span class="badge bg-info me-2">
+                                            <i class="ph ph-paperclip me-1"></i>
+                                            {{ recipient.message.messageattachment_set.count }} مرفق
+                                        </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="message-actions">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'messaging:message_detail' recipient.message.message_id %}" 
+                                               class="modern-btn modern-btn-secondary modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               title="عرض الرسالة">
+                                                <i class="ph ph-eye"></i>
+                                        </a>
+                                        <a href="{% url 'messaging:reply' recipient.message.message_id %}" 
+                                               class="modern-btn modern-btn-success modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               title="رد">
+                                                <i class="ph ph-arrow-bend-up-left"></i>
+                                        </a>
+                                        {% if not recipient.message.prevent_forwarding %}
+                                        <a href="{% url 'messaging:forward' recipient.message.message_id %}" 
+                                               class="modern-btn modern-btn-primary modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               title="توجيه">
+                                                <i class="ph ph-share"></i>
+                                        </a>
+                                        {% endif %}
+                                        <button type="button" 
+                                                    class="modern-btn modern-btn-danger modern-btn-sm delete-message" 
+                                                    data-message-id="{{ recipient.message.message_id }}" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="حذف">
+                                                <i class="ph ph-trash"></i>
+                                        </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if message_recipients.has_other_pages %}
+            <nav aria-label="تصفح الرسائل" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if message_recipients.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ message_recipients.previous_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in message_recipients.paginator.page_range %}
+                    {% if message_recipients.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > message_recipients.number|add:'-3' and num < message_recipients.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if message_recipients.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ message_recipients.next_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="modern-card animate-fade-in-up delay-800">
+                <div class="modern-card-body text-center py-5">
+                    <div class="empty-state">
+                        <i class="ph ph-tray fs-1 text-muted mb-4 d-block"></i>
+                        <h4 class="text-muted mb-2">صندوق الوارد فارغ</h4>
+                        <p class="text-muted mb-4">لا توجد رسائل في صندوق الوارد حالياً</p>
+                        <a href="{% url 'messaging:compose' %}" class="modern-btn modern-btn-primary">
+                            <i class="ph ph-pencil me-2"></i>
+                        إنشاء رسالة جديدة
+                    </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تفعيل tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // البحث في الرسائل
+    const searchInput = document.getElementById('messageSearch');
+    const messageCards = document.querySelectorAll('.message-card');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            messageCards.forEach(card => {
+                const sender = card.querySelector('.message-sender').textContent.toLowerCase();
+                const subject = card.querySelector('.message-subject').textContent.toLowerCase();
+                const preview = card.querySelector('.message-preview').textContent.toLowerCase();
+                
+                const matches = sender.includes(searchTerm) || 
+                              subject.includes(searchTerm) || 
+                              preview.includes(searchTerm);
+                
+                if (matches || searchTerm === '') {
+                    card.style.display = '';
+                    card.style.animation = 'fadeInUp 0.3s ease-out';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // تأثيرات hover للرسائل
+    messageCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // تحديد الرسالة كمقروءة عند النقر
+    messageCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (!e.target.closest('.btn-group')) {
+                const messageId = this.dataset.id;
+                if (this.classList.contains('unread')) {
+                    this.classList.remove('unread');
+                    // هنا يمكن إضافة استدعاء AJAX لتحديث الحالة في الخادم
+                }
+            }
+        });
+    });
+
+    // حذف الرسالة
+    document.querySelectorAll('.delete-message').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+            const messageId = this.dataset.messageId;
+        if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+                // هنا يمكن إضافة استدعاء AJAX لحذف الرسالة
+                this.closest('.message-card').style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    this.closest('.message-card').remove();
+                }, 300);
+            }
+        });
+    });
+
+    // تحديث تلقائي كل 30 ثانية
+    setInterval(() => {
+        // يمكن إضافة استدعاء AJAX للتحقق من الرسائل الجديدة
+        console.log('التحقق من الرسائل الجديدة...');
+    }, 30000);
+    
+    // تأثير على بطاقات الإحصائيات
+    const statCards = document.querySelectorAll('.modern-stat-card');
+    statCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px) scale(1.02)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+
+<style>
+.message-card {
+    transition: all 0.2s ease;
+    border: 1px solid rgba(165, 28, 48, 0.06);
+}
+
+.message-card:hover {
+    border-color: rgba(165, 28, 48, 0.12);
+}
+
+.message-card.unread {
+    border-left: 4px solid var(--cham-primary);
+    background: rgba(165, 28, 48, 0.02);
+}
+
+.message-card.urgent {
+    border-left: 4px solid #dc3545;
+}
+
+.message-card.confidential {
+    border-left: 4px solid #ffc107;
+}
+
+.message-status-indicator {
+    width: 8px;
+    height: 8px;
+    background: var(--cham-primary);
+    border-radius: 50%;
+    margin-top: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+.message-avatar {
+    flex-shrink: 0;
+}
+
+.message-tags .badge {
+    font-size: 0.75rem;
+}
+
+.message-actions .btn-group {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.message-card:hover .message-actions .btn-group {
+    opacity: 1;
+}
+
+.empty-state {
+    padding: 2rem;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تحسين التصميم المتجاوب */
+@media (max-width: 768px) {
+    .message-actions .btn-group {
+        opacity: 1;
+    }
+    
+    .message-tags {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .message-tags .badge {
+        margin-right: 0 !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}

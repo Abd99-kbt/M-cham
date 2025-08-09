@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الملف الشخصي - {{ user.arabic_name }}{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item active">الملف الشخصي</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="modern-page-title animate-fade-in-right">
+                        <i class="ph ph-user-circle"></i>
+                        الملف الشخصي
+                    </h1>
+                    <p class="modern-page-subtitle animate-fade-in-right delay-100">
+                        معلومات الحساب والإعدادات الشخصية
+                    </p>
+                </div>
+                <div class="d-flex gap-2 animate-fade-in-right delay-200">
+                    <a href="{% url 'accounts:change_password' %}" class="modern-btn modern-btn-secondary">
+                        <i class="ph ph-key"></i>
+                        <span>تغيير كلمة المرور</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Info -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <!-- Main Profile Card -->
+            <div class="modern-card animate-fade-in-up delay-300">
+                <div class="modern-card-body text-center">
+                    <!-- Avatar -->
+                    <div class="profile-avatar mx-auto mb-4 animate-pulse">
+                        {{ user.arabic_name|first }}
+                    </div>
+                    
+                    <!-- Name and Title -->
+                    <h3 class="fw-bold mb-2">{{ user.arabic_name }}</h3>
+                    <p class="text-muted mb-3">{{ user.position.title }}</p>
+                    
+                    <!-- Position Level Badge -->
+                    <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill mb-3">
+                        <i class="ph ph-star me-1"></i>
+                        {{ user.position.get_level_display|default:"مستوى غير محدد" }}
+                    </span>
+                    
+                    <!-- Department -->
+                    <div class="mt-4 pt-4 border-top">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="ph ph-buildings text-primary me-2 fs-5"></i>
+                            <div>
+                                <small class="text-muted d-block">القسم</small>
+                                <strong class="text-primary">{{ user.department.name }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="modern-card mt-4 animate-fade-in-up delay-400">
+                <div class="modern-card-header">
+                    <h6 class="mb-0">
+                        <i class="ph ph-chart-bar me-2"></i>
+                        إحصائيات سريعة
+                    </h6>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="modern-stat-card text-center">
+                                <div class="modern-stat-number text-primary">{{ user.sent_messages.count|default:0 }}</div>
+                                <div class="modern-stat-label">رسالة مرسلة</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="modern-stat-card text-center">
+                                <div class="modern-stat-number text-success">{{ user.received_messages.count|default:0 }}</div>
+                                <div class="modern-stat-label">رسالة مستقبلة</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="modern-stat-card text-center">
+                                <div class="modern-stat-number text-info">{{ user.date_joined|timesince }}</div>
+                                <div class="modern-stat-label">منذ التسجيل</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Status -->
+            <div class="modern-card mt-4 animate-fade-in-up delay-500">
+                <div class="modern-card-header">
+                    <h6 class="mb-0">
+                        <i class="ph ph-shield-check me-2"></i>
+                        حالة الحساب
+                    </h6>
+                </div>
+                <div class="modern-card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>حالة الحساب</span>
+                        <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %} d-flex align-items-center">
+                            <i class="ph ph-{% if user.is_active %}check-circle{% else %}x-circle{% endif %} me-1"></i>
+                            {% if user.is_active %}نشط{% else %}غير نشط{% endif %}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>صلاحيات الإدارة</span>
+                        <span class="badge {% if user.is_staff %}bg-success{% else %}bg-secondary{% endif %} d-flex align-items-center">
+                            <i class="ph ph-{% if user.is_staff %}check{% else %}minus{% endif %} me-1"></i>
+                            {% if user.is_staff %}متاحة{% else %}غير متاحة{% endif %}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>المصادقة الثنائية</span>
+                        <span class="badge {% if user.two_factor_enabled %}bg-success{% else %}bg-warning{% endif %} d-flex align-items-center">
+                            <i class="ph ph-{% if user.two_factor_enabled %}check{% else %}warning{% endif %} me-1"></i>
+                            {% if user.two_factor_enabled %}مفعلة{% else %}غير مفعلة{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Information -->
+        <div class="col-xl-8 col-lg-7">
+            <!-- Personal Information -->
+            <div class="modern-card animate-fade-in-up delay-600">
+                <div class="modern-card-header">
+                    <h5 class="mb-0">
+                        <i class="ph ph-info me-2"></i>
+                        المعلومات الشخصية
+                    </h5>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-identification-badge text-primary me-2"></i>
+                                    رقم الموظف
+                                </label>
+                                <div class="info-value">
+                                    <code class="bg-light px-2 py-1 rounded">{{ user.employee_id|default:"-" }}</code>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-user text-primary me-2"></i>
+                                    اسم المستخدم
+                                </label>
+                                <div class="info-value">
+                                    <code class="bg-light px-2 py-1 rounded">{{ user.username }}</code>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-envelope text-primary me-2"></i>
+                                    البريد الإلكتروني
+                                </label>
+                                <div class="info-value">
+                                    {% if user.email %}
+                                        <a href="mailto:{{ user.email }}" class="text-decoration-none">{{ user.email }}</a>
+                                    {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-phone text-primary me-2"></i>
+                                    رقم الهاتف
+                                </label>
+                                <div class="info-value">
+                                    {% if user.phone %}
+                                        <a href="tel:{{ user.phone }}" class="text-decoration-none">{{ user.phone }}</a>
+                                    {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-calendar-plus text-primary me-2"></i>
+                                    تاريخ الانضمام
+                                </label>
+                                <div class="info-value">
+                                    <div class="fw-semibold">{{ user.date_joined|date:"d/m/Y" }}</div>
+                                    <small class="text-muted">{{ user.date_joined|date:"H:i" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-clock text-primary me-2"></i>
+                                    آخر نشاط
+                                </label>
+                                <div class="info-value">
+                                    {% if user.last_activity %}
+                                        <div class="fw-semibold">{{ user.last_activity|timesince }}</div>
+                                        <small class="text-muted">مضت</small>
+                                    {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-user-gear text-primary me-2"></i>
+                                    المدير المباشر
+                                </label>
+                                <div class="info-value">
+                                    {% if user.direct_manager %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 35px; height: 35px;">
+                                                <span class="text-white fw-bold small">{{ user.direct_manager.arabic_name|first }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ user.direct_manager.arabic_name }}</div>
+                                                <small class="text-muted">{{ user.direct_manager.position.title }}</small>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions -->
+            <div class="modern-card mt-4 animate-fade-in-up delay-700">
+                <div class="modern-card-header">
+                    <h5 class="mb-0">
+                        <i class="ph ph-shield-check me-2"></i>
+                        الصلاحيات والأذونات
+                    </h5>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="permission-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="permission-icon {% if user.can_send_confidential %}text-success{% else %}text-danger{% endif %} me-3">
+                                        <i class="ph ph-{% if user.can_send_confidential %}check-circle{% else %}x-circle{% endif %} fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">إرسال رسائل سرية</div>
+                                        <small class="text-muted">القدرة على إرسال الرسائل السرية</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="permission-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="permission-icon {% if user.can_send_urgent %}text-success{% else %}text-danger{% endif %} me-3">
+                                        <i class="ph ph-{% if user.can_send_urgent %}check-circle{% else %}x-circle{% endif %} fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">إرسال رسائل عاجلة</div>
+                                        <small class="text-muted">القدرة على إرسال الرسائل العاجلة</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="permission-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="permission-icon {% if user.position.can_approve_messages %}text-success{% else %}text-danger{% endif %} me-3">
+                                        <i class="ph ph-{% if user.position.can_approve_messages %}check-circle{% else %}x-circle{% endif %} fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">الموافقة على الرسائل</div>
+                                        <small class="text-muted">صلاحية الموافقة على الرسائل</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="permission-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="permission-icon {% if user.is_superuser %}text-success{% else %}text-danger{% endif %} me-3">
+                                        <i class="ph ph-{% if user.is_superuser %}check-circle{% else %}x-circle{% endif %} fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">صلاحيات المشرف العام</div>
+                                        <small class="text-muted">الوصول لجميع إعدادات النظام</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Information -->
+            <div class="modern-card mt-4 animate-fade-in-up delay-800">
+                <div class="modern-card-header">
+                    <h5 class="mb-0">
+                        <i class="ph ph-lock me-2"></i>
+                        معلومات الأمان
+                    </h5>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-sign-in text-primary me-2"></i>
+                                    آخر تسجيل دخول
+                                </label>
+                                <div class="info-value">
+                                    {% if user.last_login %}
+                                        <div class="fw-semibold">{{ user.last_login|date:"d/m/Y" }}</div>
+                                        <small class="text-muted">{{ user.last_login|date:"H:i" }}</small>
+                                    {% else %}
+                                        <span class="text-muted">لم يسجل دخول بعد</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-warning text-primary me-2"></i>
+                                    محاولات الدخول الفاشلة
+                                </label>
+                                <div class="info-value">
+                                    <span class="{% if user.failed_login_attempts > 0 %}text-warning fw-bold{% else %}text-success{% endif %}">
+                                        {{ user.failed_login_attempts|default:0 }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-key text-primary me-2"></i>
+                                    حالة كلمة المرور
+                                </label>
+                                <div class="info-value">
+                                    <span class="badge {% if user.require_password_change %}bg-warning{% else %}bg-success{% endif %} d-flex align-items-center w-fit">
+                                        <i class="ph ph-{% if user.require_password_change %}warning{% else %}check{% endif %} me-1"></i>
+                                        {% if user.require_password_change %}تتطلب تغيير{% else %}محدثة{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="info-label">
+                                    <i class="ph ph-desktop text-primary me-2"></i>
+                                    حالة الجلسة
+                                </label>
+                                <div class="info-value">
+                                    <span class="badge {% if user.is_active_session %}bg-success{% else %}bg-secondary{% endif %} d-flex align-items-center w-fit">
+                                        <i class="ph ph-{% if user.is_active_session %}check-circle{% else %}minus-circle{% endif %} me-1"></i>
+                                        {% if user.is_active_session %}نشطة{% else %}غير نشطة{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تأثيرات hover للبطاقات
+    const cards = document.querySelectorAll('.modern-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // تأثير click على معلومات الاتصال
+    const contactLinks = document.querySelectorAll('a[href^="mailto:"], a[href^="tel:"]');
+    contactLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            this.style.animation = 'pulse 0.3s ease-out';
+            setTimeout(() => {
+                this.style.animation = '';
+            }, 300);
+        });
+    });
+    
+    // تحديث معلومات النشاط كل دقيقة
+    setInterval(() => {
+        // يمكن إضافة استدعاء AJAX لتحديث آخر نشاط هنا
+        console.log('تحديث معلومات النشاط...');
+    }, 60000);
+    
+    // تأثير على أيقونات الصلاحيات
+    const permissionIcons = document.querySelectorAll('.permission-icon');
+    permissionIcons.forEach(icon => {
+        icon.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        icon.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+});
+</script>
+
+<style>
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cham-primary), var(--cham-primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    box-shadow: var(--cham-shadow-md);
+    border: 4px solid white;
+}
+
+.info-group {
+    padding: 1rem 0;
+}
+
+.info-label {
+    display: block;
+    font-weight: var(--cham-font-weight-semibold);
+    color: var(--cham-text-secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    font-weight: var(--cham-font-weight-medium);
+    color: var(--cham-text-primary);
+}
+
+.permission-item {
+    padding: 1rem;
+    border-radius: var(--cham-radius-md);
+    background: rgba(165, 28, 48, 0.02);
+    transition: all var(--cham-transition-normal);
+}
+
+.permission-item:hover {
+    background: rgba(165, 28, 48, 0.05);
+    transform: translateY(-2px);
+}
+
+.permission-icon {
+    transition: all var(--cham-transition-normal);
+}
+
+.w-fit {
+    width: fit-content !important;
+}
+
+/* تحسين التصميم المتجاوب */
+@media (max-width: 768px) {
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2rem;
+    }
+    
+    .modern-page-title {
+        font-size: 1.5rem;
+    }
+    
+    .d-flex.gap-2 {
+        justify-content: center;
+    }
+    
+    .modern-btn {
+        width: auto;
+        min-width: 180px;
+        justify-content: center;
+    }
+}
+
+/* أنيميشن إضافية */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+</style>
+{% endblock %}

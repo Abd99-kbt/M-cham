@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}إدارة المستخدمين - بنك الشام{% endblock %}
+
+{% block breadcrumb %}
+{{ block.super }}
+<li class="breadcrumb-item active">إدارة المستخدمين</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="modern-page-title animate-fade-in-right">
+                        <i class="ph ph-users"></i>
+                        إدارة المستخدمين
+                    </h1>
+                    <p class="modern-page-subtitle animate-fade-in-right delay-100">
+                        إدارة حسابات المستخدمين وصلاحياتهم
+                    </p>
+                </div>
+                <div class="animate-fade-in-right delay-200">
+                    <a href="{% url 'accounts:admin_add_user' %}" class="modern-btn modern-btn-primary modern-btn-lg">
+                        <i class="ph ph-user-plus"></i>
+                        <span>إضافة مستخدم جديد</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-100">
+                <i class="modern-stat-icon ph ph-users"></i>
+                <div class="modern-stat-number">{{ users.count|default:0 }}</div>
+                <div class="modern-stat-label">إجمالي المستخدمين</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-200">
+                <i class="modern-stat-icon ph ph-check-circle"></i>
+                <div class="modern-stat-number">{{ users|length|default:0 }}</div>
+                <div class="modern-stat-label">المستخدمين النشطين</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-300">
+                <i class="modern-stat-icon ph ph-shield-check"></i>
+                <div class="modern-stat-number">{{ staff_count|default:0 }}</div>
+                <div class="modern-stat-label">مدراء النظام</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="modern-stat-card animate-fade-in-up delay-400">
+                <i class="modern-stat-icon ph ph-clock"></i>
+                <div class="modern-stat-number">{{ recent_logins|default:0 }}</div>
+                <div class="modern-stat-label">دخول حديث (24س)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Guide -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card animate-fade-in-up delay-500">
+                <div class="modern-card-header">
+                    <h5 class="mb-0">
+                        <i class="ph ph-info me-2"></i>
+                        دليل الإجراءات المتاحة
+                    </h5>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="modern-btn modern-btn-secondary modern-btn-sm me-3">
+                                    <i class="ph ph-list"></i>
+                                </div>
+                                <div>
+                                    <strong>عرض النشاط</strong>
+                                    <br>
+                                    <small class="text-muted">سجل نشاط وتاريخ الدخول</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="modern-btn modern-btn-warning modern-btn-sm me-3">
+                                    <i class="ph ph-key"></i>
+                                </div>
+                                <div>
+                                    <strong>إعادة تعيين كلمة المرور</strong>
+                                    <br>
+                                    <small class="text-muted">تغيير كلمة مرور المستخدم</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="modern-btn modern-btn-secondary modern-btn-sm me-3">
+                                    <i class="ph ph-toggle-left"></i>
+                                </div>
+                                <div>
+                                    <strong>تفعيل/تعطيل</strong>
+                                    <br>
+                                    <small class="text-muted">إدارة حالة الحساب</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="modern-btn modern-btn-danger modern-btn-sm me-3">
+                                    <i class="ph ph-trash"></i>
+                                </div>
+                                <div>
+                                    <strong>حذف نهائي</strong>
+                                    <br>
+                                    <small class="text-muted">إزالة الحساب من النظام</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card animate-fade-in-up delay-600">
+                <div class="modern-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="ph ph-table me-2"></i>
+                            قائمة المستخدمين
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <div class="input-group" style="width: 300px;">
+                                <input type="text" class="modern-form-control" placeholder="البحث في المستخدمين..." id="userSearch">
+                                <button class="modern-btn modern-btn-secondary" type="button">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modern-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th width="60">#</th>
+                                    <th>الاسم الكامل</th>
+                                    <th>اسم المستخدم</th>
+                                    <th>القسم</th>
+                                    <th>المنصب</th>
+                                    <th>الحالة</th>
+                                    <th>آخر دخول</th>
+                                    <th width="200">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr class="user-row animate-fade-in-up" style="animation-delay: {{ forloop.counter0|add:6 }}00ms">
+                                    <td>
+                                        <div class="fw-semibold text-muted">{{ forloop.counter }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 40px; height: 40px;">
+                                                <span class="text-white fw-bold small">{{ user.arabic_name|first }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ user.arabic_name }}</div>
+                                                <small class="text-muted">رقم الموظف: {{ user.employee_id|default:"-" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code class="bg-light px-2 py-1 rounded">{{ user.username }}</code>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium">{{ user.department.name }}</div>
+                                        <small class="text-muted">{{ user.department.code|default:"-" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium">{{ user.position.title }}</div>
+                                        <small class="text-muted">المستوى {{ user.position.level|default:"-" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge bg-success d-flex align-items-center w-fit">
+                                                <i class="ph ph-check-circle me-1"></i>
+                                                نشط
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger d-flex align-items-center w-fit">
+                                                <i class="ph ph-x-circle me-1"></i>
+                                                معطل
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% with sessions=user.usersession_set.all %}
+                                            {% if sessions %}
+                                                {% for session in sessions %}
+                                                    {% if forloop.first %}
+                                                        <div class="fw-medium">{{ session.login_time|date:"d/m/Y" }}</div>
+                                                        <small class="text-muted">{{ session.login_time|date:"H:i" }}</small>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-muted">لم يسجل دخول</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'accounts:admin_user_activity' user.id %}" 
+                                               class="modern-btn modern-btn-secondary modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="عرض سجل النشاط">
+                                                <i class="ph ph-list"></i>
+                                            </a>
+                                            <a href="{% url 'accounts:admin_reset_password' user.id %}" 
+                                               class="modern-btn modern-btn-warning modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="إعادة تعيين كلمة المرور">
+                                                <i class="ph ph-key"></i>
+                                            </a>
+                                            <a href="{% url 'accounts:admin_toggle_user' user.id %}" 
+                                               class="modern-btn modern-btn-secondary modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="{% if user.is_active %}تعطيل{% else %}تفعيل{% endif %} الحساب">
+                                                <i class="ph ph-{% if user.is_active %}toggle-left{% else %}toggle-right{% endif %}"></i>
+                                            </a>
+                                            <a href="{% url 'accounts:admin_delete_user' user.id %}" 
+                                               class="modern-btn modern-btn-danger modern-btn-sm" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="حذف نهائي"
+                                               onclick="return confirm('هل أنت متأكد من حذف هذا المستخدم؟ هذا الإجراء لا يمكن التراجع عنه.');">
+                                                <i class="ph ph-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="ph ph-users fs-1 d-block mb-3"></i>
+                                            <h5>لا يوجد مستخدمون</h5>
+                                            <p>ابدأ بإضافة مستخدم جديد</p>
+                                            <a href="{% url 'accounts:admin_add_user' %}" class="modern-btn modern-btn-primary">
+                                                <i class="ph ph-user-plus me-1"></i>
+                                                إضافة مستخدم
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تفعيل tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // البحث في المستخدمين
+    const searchInput = document.getElementById('userSearch');
+    const userRows = document.querySelectorAll('.user-row');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            userRows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const username = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const department = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                const position = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+                
+                const matches = name.includes(searchTerm) || 
+                              username.includes(searchTerm) || 
+                              department.includes(searchTerm) || 
+                              position.includes(searchTerm);
+                
+                if (matches || searchTerm === '') {
+                    row.style.display = '';
+                    row.style.animation = 'fadeInUp 0.3s ease-out';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // تأثيرات hover للصفوف
+    userRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(-4px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // إضافة تأثير loading للأزرار
+    document.querySelectorAll('.modern-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (this.href && !this.onclick) {
+                this.classList.add('loading');
+                setTimeout(() => {
+                    this.classList.remove('loading');
+                }, 3000);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.w-fit {
+    width: fit-content !important;
+}
+
+.user-row {
+    transition: all 0.2s ease;
+}
+
+.user-row:hover {
+    background-color: rgba(165, 28, 48, 0.02) !important;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تحسين التصميم المتجاوب */
+@media (max-width: 768px) {
+    .modern-page-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .btn-group .modern-btn {
+        border-radius: var(--cham-radius-md) !important;
+    }
+}
+</style>
+{% endblock %}

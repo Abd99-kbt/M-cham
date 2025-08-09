@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}تفاصيل القسم - {{ department.name }} - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-building"></i> تفاصيل القسم: {{ department.name }}</h4>
+        <div>
+            <a href="{% url 'accounts:edit_department' department.id %}" class="btn btn-primary">
+                <i class="ph ph-pencil"></i> تعديل القسم
+            </a>
+            <a href="{% url 'accounts:departments' %}" class="btn btn-secondary">
+                <i class="ph ph-arrow-left"></i> العودة للقائمة
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="ph ph-info"></i> معلومات القسم</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%">اسم القسم</th>
+                                    <td>{{ department.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>رمز القسم</th>
+                                    <td>{{ department.code }}</td>
+                                </tr>
+                                <tr>
+                                    <th>القسم الأعلى</th>
+                                    <td>{{ department.parent_department.name|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>مدير القسم</th>
+                                    <td>{{ department.manager.arabic_name|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>الوصف</th>
+                                    <td>{{ department.description|default:"-"|linebreaks }}</td>
+                                </tr>
+                                <tr>
+                                    <th>تاريخ الإنشاء</th>
+                                    <td>{{ department.created_at|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="ph ph-tree-structure"></i> الأقسام الفرعية</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for child in department.department_set.all %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ child.name }}</span>
+                                <a href="{% url 'accounts:department_detail' child.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="ph ph-eye"></i> عرض
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item text-center">لا توجد أقسام فرعية</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="ph ph-users"></i> موظفو القسم</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الاسم</th>
+                            <th>اسم المستخدم</th>
+                            <th>المنصب</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in department.user_set.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ user.arabic_name }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.position.title }}</td>
+                            <td>
+                                <span class="badge bg-{% if user.is_active %}success{% else %}danger{% endif %}">
+                                    {% if user.is_active %}نشط{% else %}معطل{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'accounts:admin_user_activity' user.id %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-placement="top" title="عرض سجل نشاط المستخدم">
+                                        <i class="ph ph-list"></i>
+                                    </a>
+                                    <a href="{% url 'accounts:admin_reset_password' user.id %}" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="إعادة تعيين كلمة المرور للمستخدم">
+                                        <i class="ph ph-key"></i>
+                                    </a>
+                                    <a href="{% url 'accounts:admin_toggle_user' user.id %}" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="{% if user.is_active %}تعطيل{% else %}تفعيل{% endif %} حساب المستخدم">
+                                        <i class="ph ph-{% if user.is_active %}toggle-left{% else %}toggle-right{% endif %}"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">لا يوجد موظفون في هذا القسم</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="ph ph-id-badge"></i> المناصب في القسم</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المنصب</th>
+                            <th>المستوى الوظيفي</th>
+                            <th>مستوى الصلاحيات</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for position in department.position_set.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ position.title }}</td>
+                            <td>{{ position.get_level_display }}</td>
+                            <td>{{ position.permissions_level }}</td>
+                            <td>
+                                <a href="{% url 'accounts:edit_position' position.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="تعديل بيانات المنصب">
+                                    <i class="ph ph-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">لا توجد مناصب في هذا القسم</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تفعيل tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

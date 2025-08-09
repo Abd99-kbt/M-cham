@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}تعديل المجموعة - {{ group.name }} - بنك الشام{% endblock %}
+
+{% block content %}
+<div class="card animated-fade">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="ph ph-pencil"></i> تعديل المجموعة: {{ group.name }}</h4>
+        <div>
+            <a href="{% url 'accounts:group_detail' group.id %}" class="btn btn-secondary">
+                <i class="ph ph-arrow-left"></i> العودة للتفاصيل
+            </a>
+            <a href="{% url 'accounts:groups' %}" class="btn btn-outline-secondary">
+                <i class="ph ph-list"></i> قائمة المجموعات
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'accounts:edit_group' group.id %}">
+            {% csrf_token %}
+            
+            <div class="alert alert-info mb-4">
+                <i class="ph ph-info"></i> قم بتعديل بيانات المجموعة ثم اضغط على زر "حفظ التغييرات" في نهاية الصفحة.
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="name" class="form-label">اسم المجموعة <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ group.name }}" required>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="description" class="form-label">الوصف</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ group.description }}</textarea>
+                        <small class="form-text text-muted">وصف اختياري للمجموعة وغرضها</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label for="members" class="form-label">الأعضاء <span class="text-danger">*</span></label>
+                        <select class="form-select" id="members" name="members" multiple required>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" {% if user in group.members.all %}selected{% endif %}>
+                                {{ user.arabic_name }} ({{ user.username }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">يمكنك اختيار أكثر من مستخدم (اضغط Ctrl للاختيار المتعدد)</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ph ph-users"></i> المستخدمون المتاحون</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"></th>
+                                    <th>الاسم</th>
+                                    <th>اسم المستخدم</th>
+                                    <th>القسم</th>
+                                    <th>المنصب</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr class="user-row" data-user-id="{{ user.id }}">
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input user-checkbox" type="checkbox" value="{{ user.id }}" id="user-{{ user.id }}" {% if user in group.members.all %}checked{% endif %}>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.arabic_name }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.department.name }}</td>
+                                    <td>{{ user.position.title }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">لا يوجد مستخدمون متاحون</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="ph ph-floppy-disk"></i> حفظ التغييرات
+                </button>
+                <a href="{% url 'accounts:group_detail' group.id %}" class="btn btn-outline-secondary">
+                    <i class="ph ph-x"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // تفعيل Select2 لتحسين قوائم الاختيار
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('#members').select2({
+                placeholder: "اختر الأعضاء",
+                allowClear: true,
+                width: '100%'
+            });
+        }
+        
+        // ربط جدول المستخدمين مع قائمة الاختيار
+        const userCheckboxes = document.querySelectorAll('.user-checkbox');
+        const membersSelect = document.getElementById('members');
+        
+        userCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const userId = this.value;
+                const option = Array.from(membersSelect.options).find(opt => opt.value === userId);
+                
+                if (this.checked) {
+                    option.selected = true;
+                } else {
+                    option.selected = false;
+                }
+                
+                // تحديث Select2 إذا كان متاحاً
+                if (typeof $ !== 'undefined' && $.fn.select2) {
+                    $(membersSelect).trigger('change');
+                }
+            });
+        });
+        
+        // تحديث الجدول عند تغيير الاختيار في القائمة
+        membersSelect.addEventListener('change', function() {
+            const selectedValues = Array.from(this.selectedOptions).map(opt => opt.value);
+            
+            userCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = selectedValues.includes(checkbox.value);
+            });
+        });
+        
+        // السماح بالنقر على الصف لتحديد/إلغاء تحديد المستخدم
+        const userRows = document.querySelectorAll('.user-row');
+        userRows.forEach(function(row) {
+            row.addEventListener('click', function(e) {
+                // تجاهل النقر على مربع الاختيار نفسه
+                if (e.target.type !== 'checkbox') {
+                    const userId = this.dataset.userId;
+                    const checkbox = document.getElementById('user-' + userId);
+                    checkbox.checked = !checkbox.checked;
+                    
+                    // تحفيز حدث التغيير لتحديث القائمة
+                    const event = new Event('change');
+                    checkbox.dispatchEvent(event);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

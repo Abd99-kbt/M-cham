@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تأكيد أرشفة الرسالة - نظام المراسلات الداخلية{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirm-card {
+        max-width: 600px;
+        margin: 2rem auto;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .confirm-header {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    .confirm-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    .message-preview {
+        background: #f8f9fa;
+        border-left: 4px solid #6c757d;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 8px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        padding: 2rem;
+    }
+    .modern-btn-archive {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+    .modern-btn-archive:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+        color: white;
+    }
+    .modern-btn-cancel {
+        background: transparent;
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        padding: 10px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+    .modern-btn-cancel:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4 animate-fade-in-up">
+        <ol class="breadcrumb modern-breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'messaging:inbox' %}">
+                    <i class="ph ph-envelope"></i> الرسائل
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'messaging:message_detail' message.message_id %}">
+                    <i class="ph ph-file-text"></i> تفاصيل الرسالة
+                </a>
+            </li>
+            <li class="breadcrumb-item active">تأكيد الأرشفة</li>
+        </ol>
+    </nav>
+
+    <!-- Confirmation Card -->
+    <div class="confirm-card animate-fade-in-up">
+        <!-- Header -->
+        <div class="confirm-header">
+            <div class="confirm-icon">
+                <i class="ph ph-archive"></i>
+            </div>
+            <h2 class="mb-0">تأكيد أرشفة الرسالة</h2>
+            <p class="mb-0 mt-2 opacity-75">هل أنت متأكد من أرشفة هذه الرسالة؟</p>
+        </div>
+
+        <!-- Message Preview -->
+        <div class="p-4">
+            <div class="message-preview">
+                <h6 class="mb-2">
+                    <i class="ph ph-envelope me-2"></i>
+                    {{ message.subject }}
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="ph ph-user me-1"></i>
+                            <strong>من:</strong> {{ message.sender.arabic_name|default:message.sender.username }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="ph ph-calendar me-1"></i>
+                            <strong>التاريخ:</strong> {{ message.created_at|date:"Y/m/d H:i" }}
+                        </small>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="ph ph-file-text me-1"></i>
+                        <strong>المحتوى:</strong> {{ message.body|truncatechars:100 }}
+                    </small>
+                </div>
+                {% if message.category %}
+                <div class="mt-2">
+                    <span class="badge bg-secondary">
+                        <i class="ph ph-tag me-1"></i>
+                        {{ message.category.get_name_display }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Warning Note -->
+            <div class="alert alert-warning d-flex align-items-center mt-3">
+                <i class="ph ph-warning-circle me-2 fs-5"></i>
+                <div>
+                    <strong>ملاحظة:</strong> 
+                    ستتم أرشفة الرسالة وإزالتها من صندوق الوارد. يمكنك الوصول إليها لاحقاً من قسم الأرشيف.
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons bg-light">
+            <form method="post" id="archiveForm" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="modern-btn-archive" id="confirmArchive">
+                    <i class="ph ph-archive me-2"></i>
+                    تأكيد الأرشفة
+                </button>
+            </form>
+            <a href="{% url 'messaging:message_detail' message.message_id %}" class="modern-btn-cancel">
+                <i class="ph ph-x me-2"></i>
+                إلغاء
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('archiveForm');
+    const button = document.getElementById('confirmArchive');
+    
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        button.innerHTML = '<i class="ph ph-spinner ph-spin me-2"></i> جاري الأرشفة...';
+        button.disabled = true;
+        
+        // Add loading class for visual feedback
+        button.classList.add('loading');
+    });
+    
+    // Add some interactive effects
+    const card = document.querySelector('.confirm-card');
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+
+<style>
+.modern-btn-archive.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.confirm-card {
+    transition: transform 0.3s ease;
+}
+</style>
+{% endblock %}

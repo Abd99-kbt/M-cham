@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}الإعدادات - بنك الشام{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item">
+        <a href="{% url 'dashboard' %}" class="text-decoration-none">
+            <i class="ph ph-house"></i> الرئيسية
+        </a>
+    </li>
+    <li class="breadcrumb-item active">الإعدادات</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card animated-fade">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="ph ph-gear me-2"></i>
+                        إعدادات الحساب
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- إعدادات الحساب -->
+                        <div class="col-lg-6 mb-4">
+                            <h5 class="mb-3">
+                                <i class="ph ph-user me-2"></i>
+                                معلومات الحساب
+                            </h5>
+                            
+                            <div class="list-group">
+                                <a href="{% url 'accounts:profile' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            <i class="ph ph-user-circle me-2"></i>
+                                            الملف الشخصي
+                                        </h6>
+                                        <i class="ph ph-caret-left"></i>
+                                    </div>
+                                    <p class="mb-1">عرض وتعديل معلوماتك الشخصية</p>
+                                </a>
+                                
+                                <a href="{% url 'accounts:change_password' %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            <i class="ph ph-lock me-2"></i>
+                                            تغيير كلمة المرور
+                                        </h6>
+                                        <i class="ph ph-caret-left"></i>
+                                    </div>
+                                    <p class="mb-1">تحديث كلمة المرور الخاصة بك</p>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- إعدادات النظام -->
+                        <div class="col-lg-6 mb-4">
+                            <h5 class="mb-3">
+                                <i class="ph ph-gear-six me-2"></i>
+                                إعدادات النظام
+                            </h5>
+                            
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            <i class="ph ph-bell me-2"></i>
+                                            الإشعارات
+                                        </h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="notifications" checked>
+                                            <label class="form-check-label" for="notifications"></label>
+                                        </div>
+                                    </div>
+                                    <p class="mb-1">تفعيل إشعارات الرسائل الجديدة</p>
+                                </div>
+                                
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            <i class="ph ph-eye me-2"></i>
+                                            الوضع المظلم
+                                        </h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="darkMode">
+                                            <label class="form-check-label" for="darkMode"></label>
+                                        </div>
+                                    </div>
+                                    <p class="mb-1">تبديل بين الوضع المضيء والمظلم</p>
+                                </div>
+                                
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            <i class="ph ph-language me-2"></i>
+                                            اللغة
+                                        </h6>
+                                        <select class="form-select form-select-sm" style="width: auto;">
+                                            <option value="ar" selected>العربية</option>
+                                            <option value="en">English</option>
+                                        </select>
+                                    </div>
+                                    <p class="mb-1">اختيار لغة واجهة النظام</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- معلومات إضافية -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="ph ph-info me-2"></i>
+                                    معلومات الحساب
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>اسم المستخدم:</strong> {{ user.username }}<br>
+                                        <strong>الاسم:</strong> {{ user.arabic_name }}<br>
+                                        <strong>رقم الموظف:</strong> {{ user.employee_id }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>القسم:</strong> {{ user.department.name }}<br>
+                                        <strong>المنصب:</strong> {{ user.position.title }}<br>
+                                        <strong>الهاتف:</strong> {{ user.phone }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- أزرار العمليات -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                                    <i class="ph ph-floppy-disk me-2"></i>
+                                    حفظ الإعدادات
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-secondary" onclick="resetSettings()">
+                                    <i class="ph ph-arrow-clockwise me-2"></i>
+                                    إعادة تعيين
+                                </button>
+                                
+                                <a href="{% url 'accounts:logout' %}" 
+                                   class="btn btn-outline-danger"
+                                   onclick="return confirm('هل تريد تسجيل الخروج؟')">
+                                    <i class="ph ph-sign-out me-2"></i>
+                                    تسجيل الخروج
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JavaScript for settings functionality
+    function saveSettings() {
+        // Get settings values
+        const notifications = document.getElementById('notifications').checked;
+        const darkMode = document.getElementById('darkMode').checked;
+        const language = document.querySelector('select').value;
+        
+        // Save to localStorage (for demo purposes)
+        localStorage.setItem('notifications', notifications);
+        localStorage.setItem('darkMode', darkMode);
+        localStorage.setItem('language', language);
+        
+        // Apply dark mode
+        if (darkMode) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+        
+        // Show success message
+        showAlert('تم حفظ الإعدادات بنجاح!', 'success');
+    }
+    
+    function resetSettings() {
+        if (confirm('هل تريد إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟')) {
+            document.getElementById('notifications').checked = true;
+            document.getElementById('darkMode').checked = false;
+            document.querySelector('select').value = 'ar';
+            
+            localStorage.removeItem('notifications');
+            localStorage.removeItem('darkMode');
+            localStorage.removeItem('language');
+            
+            document.body.classList.remove('dark-mode');
+            
+            showAlert('تم إعادة تعيين الإعدادات!', 'info');
+        }
+    }
+    
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; left: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+    
+    // Load saved settings on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedNotifications = localStorage.getItem('notifications');
+        const savedDarkMode = localStorage.getItem('darkMode');
+        const savedLanguage = localStorage.getItem('language');
+        
+        if (savedNotifications !== null) {
+            document.getElementById('notifications').checked = savedNotifications === 'true';
+        }
+        
+        if (savedDarkMode !== null) {
+            const darkModeEnabled = savedDarkMode === 'true';
+            document.getElementById('darkMode').checked = darkModeEnabled;
+            if (darkModeEnabled) {
+                document.body.classList.add('dark-mode');
+            }
+        }
+        
+        if (savedLanguage) {
+            document.querySelector('select').value = savedLanguage;
+        }
+    });
+</script>
+
+<style>
+    .dark-mode {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+    }
+    
+    .dark-mode .card {
+        background-color: #2d2d2d !important;
+        border-color: #404040 !important;
+    }
+    
+    .dark-mode .list-group-item {
+        background-color: #2d2d2d !important;
+        border-color: #404040 !important;
+        color: #ffffff !important;
+    }
+    
+    .dark-mode .list-group-item:hover {
+        background-color: #3d3d3d !important;
+    }
+    
+    .dark-mode .alert-info {
+        background-color: #1e3a4a !important;
+        border-color: #2e5a7a !important;
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
